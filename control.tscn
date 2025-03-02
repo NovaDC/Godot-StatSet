@@ -1,0 +1,67 @@
+[gd_scene load_steps=9 format=3 uid="uid://cmdy8ln12gceh"]
+
+[ext_resource type="Script" path="res://addons/rpg_stats/sets/stat_set_effectable.gd" id="1_8yk2h"]
+[ext_resource type="Script" path="res://addons/rpg_stats/sets/stat_set_display_default.gd" id="2_mn85m"]
+[ext_resource type="Script" path="res://addons/rpg_stats/prototype/stat_prototype.gd" id="2_w1188"]
+[ext_resource type="Script" path="res://addons/rpg_stats/prototype/stat_prototype_numeric.gd" id="3_w0h3b"]
+
+[sub_resource type="Resource" id="Resource_6cbop"]
+script = ExtResource("2_w1188")
+name = "Cup"
+default_value = null
+display_type = {}
+editing_display_type = "res://addons/rpg_stats/prototype/stat_prototype_editor.tscn"
+
+[sub_resource type="Resource" id="Resource_h7i5w"]
+script = ExtResource("3_w0h3b")
+minimum = inf_neg
+maximum = inf
+intiger_truncated = false
+name = "Baaaaa"
+default_value = 0
+display_type = {}
+editing_display_type = "res://addons/rpg_stats/prototype/stat_prototype_editor.tscn"
+
+[sub_resource type="Resource" id="Resource_a4ds0"]
+script = ExtResource("3_w0h3b")
+minimum = inf_neg
+maximum = inf
+intiger_truncated = false
+name = "Ay"
+default_value = 0
+display_type = {}
+editing_display_type = "res://addons/rpg_stats/prototype/stat_prototype_editor.tscn"
+
+[sub_resource type="Resource" id="Resource_faxwv"]
+script = ExtResource("3_w0h3b")
+minimum = inf_neg
+maximum = inf
+intiger_truncated = false
+name = ""
+default_value = 0
+display_type = {}
+editing_display_type = "res://addons/rpg_stats/prototype/stat_prototype_editor.tscn"
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="StatSetEffectable" type="Node" parent="."]
+script = ExtResource("1_8yk2h")
+_stat_mapping = {
+SubResource("Resource_6cbop"): null,
+SubResource("Resource_h7i5w"): 0,
+SubResource("Resource_a4ds0"): 1,
+SubResource("Resource_faxwv"): 3
+}
+
+[node name="StatSetDisplayDefault" type="VBoxContainer" parent="." node_paths=PackedStringArray("stat_set")]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("2_mn85m")
+stat_set = NodePath("../StatSetEffectable")

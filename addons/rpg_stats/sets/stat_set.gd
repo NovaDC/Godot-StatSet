@@ -1,0 +1,265 @@
+@tool
+
+extends Node
+class_name StatSet
+
+@export var _stat_mapping := {} #statprototype to the working value
+@export var _stat_pre_signals := {} #statprototype to signals
+@export var _stat_post_signals := {} #statprototype to signals
+
+func __nop(_ignored):
+	pass
+
+func __fine_ok_heres_dictionary_but_with_the_default_arguments_removed_are_you_happy_now() -> Dictionary:
+	return dictionary()
+
+## A readonly view of the internal dict used by this stat set for values of stats.
+## Modifying this [Dictionary] itself will not effect the stat set, as it is a readonly copy,
+## however, modifying the prototypes will, as it is not a deep copy.
+@export var stat_mapping:Dictionary:get = __fine_ok_heres_dictionary_but_with_the_default_arguments_removed_are_you_happy_now, set = __nop
+## A readonly view of the internal dict used by this stat set for the pre set signals for individual stats.[br]
+## Modifying this [Dictionary] itself will not effect the stat set, as it is a readonly copy,
+## however, modifying the prototypes or signals will, as it is not a deep copy.
+@export var stat_pre_signals:Dictionary:get = pre_signal_dictionary, set = __nop
+## A readonly view of the internal dict used by this stat set for the post set signals for individual stats.[br]
+## Modifying this [Dictionary] itself will not effect the stat set, as it is a readonly copy,
+## however, modifying the prototypes or signals will, as it is not a deep copy.
+@export var stat_post_signals:Dictionary:get = post_signal_dictionary, set = __nop
+
+## Called before [b]any[/b] stat is changed on this [StatSet].[br]
+## To subscribe to specific stats, see [method get_pre_signal] and subscribe to that.[br]
+## NOTE: when adding a stat for the first time, it's [param previous_value] will be the same as the [member StatPrototype.default_value]
+signal pre_stat_change(stat:StatPrototype, previous_value:Variant, working_value:Variant)
+## Called after [b]any[/b] stat is changed on this [StatSet].[br]
+## To subscribe to specific stats, see [method get_post_signal] and subscribe to that.[br]
+## NOTE: when adding a stat for the first time, it's [param previous_value] will be the same as the [member StatPrototype.default_value]
+signal post_stat_change(stat:StatPrototype, previous_value:Variant, working_value:Variant)
+## Called whenever a stat is added to this [StatSet].[br]
+## This signal is also sent when this [Node] is [method _ready] for
+## each existing stat already in the stat_set.
+signal stat_added(stat:StatPrototype)
+## Called whenever a stat is erased (removed) from this [StatSet].[br]
+## This signal is also sent before this [Node] exits the tree for every stat.
+signal stat_erased(stat:StatPrototype)
+## Called whenever a prototype in this [StatSet] is changed.[br]
+## Note the difference between this and a change in a value.
+## This will only be called when a prototype in the [StatSet] is edited.[br]
+## Commoly used for editor tools, as opposed actual monitoring of this [StatSet].
+signal post_prototype_change(proto:StatPrototype)
+
+## The default class name or path to a [PackedScene] or [Script] [Resource].
+@export var display_default_class_name := "StatDisplayDefault"
+
+func __set_signals_for(proto:StatPrototype):
+	if proto not in _stat_pre_signals:
+		_stat_pre_signals[proto] = Signal()
+	if proto not in _stat_post_signals:
+		_stat_post_signals[proto] = Signal()
+
+func __del_signals_for(proto:StatPrototype):
+	if proto in _stat_pre_signals:
+		_stat_pre_signals.erase(proto)
+	if proto in _stat_post_signals:
+		_stat_post_signals.erase(proto)
+
+func __call_pre_signal_for(proto:StatPrototype, previous_value:Variant, working_value:Variant):
+	var sig := _stat_pre_signals.get(proto, null) as Signal
+	if sig != null and not sig.is_null():
+		sig.emit(proto, previous_value, working_value)
+
+func __call_post_signal_for(proto:StatPrototype, previous_value:Variant, working_value:Variant):
+	var sig := _stat_post_signals.get(proto, null) as Signal
+	if sig != null and not sig.is_null():
+		sig.emit(proto, previous_value, working_value)
+
+func __raise_common_assert_unconstrained_exception(test:bool, proto:StatPrototype, value:Variant):
+	assert(test, "Value %s must not be outside of stat %s's constraints!"%[value, proto.name])
+
+func __on_prototype_changed(proto:StatPrototype):
+	post_prototype_change.emit(proto)
+
+func _validate_property(property: Dictionary):
+	if property["name"] == ["_stat_mapping", "_stat_pre_signals", "_stat_post_signals", "stat_mapping", "stat_pre_signals", "stat_post_signals"]:
+		#read only in the inspector
+		property["usage"] |= PROPERTY_USAGE_READ_ONLY
+	if property["name"] in ["_stat_pre_signals", "_stat_post_signals", "stat_mapping", "stat_pre_signals", "stat_post_signals"]:
+		#dont save when saving resource
+		property["usage"] &= ~PROPERTY_USAGE_STORAGE
+	if property["name"] in ["_stat_mapping", "_stat_pre_signals", "_stat_post_signals"]:
+		#dont show in editor
+		property["usage"] &= ~PROPERTY_USAGE_EDITOR
+
+## Gets the value of the stat with the given [param proto] [StatPrototype].[br]
+## If [param strict], (the default) the value will assert that the stat must already be in this [StatSet].
+## Otherwise, the default of the [param proto] will be returned if a value is not already set in this [StatSet]
+func get_stat(proto:StatPrototype, strict := true) -> Variant:
+	if _stat_mapping.has(proto):
+		return _stat_mapping[proto]
+	else:
+		assert(not strict, "Prototype %s nor found in stat set %s when getting" % [proto, self])
+		return proto.default_value
+
+## Weather or not the given [param proto] [StatPrototype] has a set value in the [StatSet].
+func has_stat(proto:StatPrototype) -> bool:
+	return _stat_mapping.has(proto)
+
+## Sets the given [param value] of the given [param proto] [StatPrototype] in this [StatSet].[br]
+## Using this method ensures that all proper signals will be emitted and that
+## the stat set initialises the stat properly, if it's being added.[br]
+## If [param assert_unconstrained], this function will assert that the [param value] will
+## [b]not[/b] be contrrained by the prototype when setting.
+func set_stat(proto:StatPrototype, value:Variant = null, assert_unconstrained:=false): #USE THIS WHENER POSSIBLE! THIS ENSURE VALUES ARE PROPERLY CONTRAINED! USE THIS EVEN WHEN EXTENDING THIS CLASS!
+	if assert_unconstrained:
+		__raise_common_assert_unconstrained_exception(not proto.will_be_constrained(value), proto, value)
+	value = proto.constrain(value)
+	var old = _stat_mapping[proto] if has_stat(proto) else proto.default_value
+	
+	if not has_stat(proto):
+		proto.changed.connect(__on_prototype_changed.bind(proto))
+		stat_added.emit(proto)
+	__set_signals_for(proto) #JIC
+	
+	__call_pre_signal_for(proto, old, value)
+	pre_stat_change.emit(proto, old, value)
+	_stat_mapping[proto] = value
+	post_stat_change.emit(proto, old, value)
+	__call_post_signal_for(proto, old, value)
+
+## Tries to erase the value for the given [param proto] [StatPrototype] in this [StatSet].[br]
+## Returns [true] if anything was removed.
+func erase_stat(proto:StatPrototype) -> bool:
+	var erased := _stat_mapping.erase(proto)
+	if erased:
+		__del_signals_for(proto)
+		proto.changed.disconnect(__on_prototype_changed.bind(proto))
+		stat_erased.emit(proto)
+	return erased
+
+## Similar to [method Dictionary.keys], this method returns all the
+## [param proto] [StatPrototype]s that have a set value in this [StatSet].
+func prototypes() -> Array[StatPrototype]: #AKA keys
+	var keys:Array[StatPrototype] = []
+	keys.assign(_stat_mapping.keys()) # The only way to typecast a typed array in godot somehow
+	return keys
+
+## Similar to [method Dictionary.values], this method returns all the
+## values in this [StatSet].
+func values() -> Array[Variant]:
+	return prototypes().map(func (x:StatPrototype): return get_stat(x))
+
+## Similar to [method Dictionary.duplicate], this method
+## returns a copy of the internal [Dictionary], mapping
+## [StatPrototype]s to their set values.
+func dictionary(deep_copy := false) -> Dictionary:
+	return _stat_mapping.duplicate(deep_copy)
+
+## This method returns a copy of the internal [Dictionary]
+## mapping [StatPrototype]s to their generated pre-set [Signal].[br]
+## To get a pre-set [Signal] for a single [StatPrototype], see
+## [method get_pre_signal].
+func pre_signal_dictionary() -> Dictionary:
+	return _stat_pre_signals.duplicate()
+
+## This method returns a copy of the internal [Dictionary]
+## mapping [StatPrototype]s to their generated posy-set [Signal].[br]
+## To get a post-set [Signal] for a single [StatPrototype], see
+## [method get_post_signal].
+func post_signal_dictionary() -> Dictionary:
+	return _stat_post_signals.duplicate()
+
+## Retrieve the specific pre-set [Signal] for the given
+## [param proto] [StatPrototype] in this [StatSet].
+func get_pre_signal(proto:StatPrototype) -> Signal:
+	__set_signals_for(proto)
+	return _stat_pre_signals[proto]
+
+## Retrieve the specific post-set [Signal] for the given
+## [param proto] [StatPrototype] in this [StatSet].
+func get_post_signal(proto:StatPrototype) -> Signal:
+	__set_signals_for(proto)
+	return _stat_post_signals[proto]
+
+func _ready():
+	for init_proto in prototypes():
+		init_proto.changed.connect(__on_prototype_changed.bind(init_proto))
+		stat_added.emit(init_proto)
+		__set_signals_for(init_proto)
+
+func _exit_tree():
+	for final_proto in prototypes():
+		stat_erased.emit(final_proto)
+
+## Similar to [method Dictionary.get], gets the set value
+## of [param proto] [StatPrototype] in this [StatSet], or returns
+## [param default] if there is no associated value.
+func get_stat_default(proto:StatPrototype, default:Variant = null) -> Variant:
+	if not has_stat(proto):
+		return default
+	else:
+		return get_stat(proto)
+
+## Similar to [method Dictionary.get_or_add], gets the set value
+## of [param proto] [StatPrototype] in this [StatSet], or adds it with the value of
+## [param default] if there is no associated value.[br]
+## [param assert_unconstrained] acts the same as it does in [method set_stat].
+func get_stat_or_add(proto:StatPrototype, default:Variant = null, assert_unconstrained:=false) -> Variant:
+	if not has_stat(proto): #Do it this way so that way its easy to extend for effectable statsets and ensures that the signal for adding is called
+		set_stat(proto, default, assert_unconstrained)
+		return default
+	else:
+		return get_stat(proto)
+
+## Sets stats in bulk using the given [param stat_mapping] of [StatPrototype]s to
+## thier new [Variant] values.[br]
+## Unlike using [method set_stat] repeatdly, this will [param assert_unconstrained]
+## before anything is ever set. Otherwise, this is a comvience function
+## for bulk setting fo stats.
+func set_stats(stat_mapping:Dictionary, assert_unconstrained:=false):
+	if assert_unconstrained:
+		#never set if anything going to be asserted, so check first before setting
+		for p in stat_mapping.keys():
+			__raise_common_assert_unconstrained_exception(not p.will_be_constrained(stat_mapping[p]), p, stat_mapping[p])
+	for p in stat_mapping.keys():
+		set_stat(p, stat_mapping[p], assert_unconstrained)
+
+## Set (or add) the given [param proto] [StatPrototype] to it's [member StatPrototype.default_value].[br]
+## [param assert_unconstrained] acts the same as it does in [method set_stat].
+func reset_stat(proto:StatPrototype, assert_unconstrained:=false):
+	set_stat(proto, proto.default_value, assert_unconstrained)
+
+## Returns the values of stats filtered by [param item_filter].[br]
+## It's exprected that [param item_filter] takes a [StatPrototype] and it's [Variant] value
+## and returns a [bool] siginifying weather or not the value should be included in the output of this function.[br]
+## A more specifically usefull function for filtering certian values than calling [method Array.filter]
+## on [method value], as it includes the [StatPrototype]context.
+func values_item_filtered(item_filter:Callable) -> Array[Variant]:
+	var values:Array[Variant] = []
+	for p in prototypes():
+		var v:Variant = get_stat(p)
+		if item_filter.call(p, v):
+			values.append(v)
+	return values
+
+## Returns all the [method prototypes] with the given [param name].[br]
+## As multiple [StatPrototype]s can have the same [member StatPrototype.name], this
+## returns an [Array] of possible [StatPrototype]s, including a empty one if
+## no valid [StatPrototype]s were found.
+func protoypes_named(name:String) -> Array[StatPrototype]:
+	return prototypes().filter(func (x:StatPrototype): return x.name == name)
+
+## Returns all the [method values] associated with a [StatPrototype] with the given [param name].[br]
+## As multiple [StatPrototype]s can have the same [member StatPrototype.name], this
+## returns an [Array] of possible values, including a empty one if
+## no valid [StatPrototype]s were found.
+func get_stats_named(name:String) -> Array[Variant]:
+	return protoypes_named(name).map(func (x:StatPrototype): return get_stat(x))
+
+## Returns weather or not any of this [StatSet]s [method StatSet.prototypes] as a
+## [member StatPrototype.name] that matches [param name].
+func has_stats_named(name:String) -> bool:
+	return prototypes().any(func (x:StatPrototype): return x.name == name)
+
+## Retreve the a new approprate [StatDisplayBase] instance for the given [param proto] [StatPrototype].
+func get_stat_display(proto:StatPrototype, display_context := "") -> StatDisplayBase: #a class name to insintate
+	var name_or_path:StringName = proto.display_type[display_context] if display_context in proto.display_type else (proto.display_type[""] if "" in proto.display_type else display_default_class_name)
+	return StatsTools.instaniatae_named(name_or_path) as StatDisplayBase

@@ -1,0 +1,292 @@
+[gd_scene load_steps=3 format=3 uid="uid://byxpd2tj23a8e"]
+
+[sub_resource type="GDScript" id="GDScript_pacnf"]
+resource_name = "StatSetEditorBriefBehaviour"
+script/source = "@tool
+extends Control
+
+@export var stat_set:StatSet = null:
+	get:
+		return stat_set
+	set(_value):
+		if stat_set != null:
+			if stat_set.stat_erased.is_connected(_update_stat_list):
+				stat_set.stat_erased.disconnect(_update_stat_list)
+			if stat_set.stat_added.is_connected(_update_stat_list):
+				stat_set.stat_added.disconnect(_update_stat_list)
+			if stat_set.post_stat_change.is_connected(_update_stat_list):
+				stat_set.post_stat_change.disconnect(_update_stat_list)
+			if stat_set.post_prototype_change.is_connected(_update_stat_list):
+				stat_set.post_prototype_change.disconnect(_update_stat_list)
+		stat_set = _value
+		if stat_set != null:
+			if not stat_set.stat_erased.is_connected(_update_stat_list):
+				stat_set.stat_erased.connect(_update_stat_list)
+			if not stat_set.stat_added.is_connected(_update_stat_list):
+				stat_set.stat_added.connect(_update_stat_list)
+			if not stat_set.post_stat_change.is_connected(_update_stat_list):
+				stat_set.post_stat_change.connect(_update_stat_list)
+			if not stat_set.post_prototype_change.is_connected(_update_stat_list):
+				stat_set.post_prototype_change.connect(_update_stat_list)
+		_on_stat_selected()
+
+var _current_editor_for_metatype_is:String = \"\"
+
+func _ready() -> void:
+	stat_set = stat_set
+
+func _enter_tree() -> void:
+	stat_set = stat_set
+
+func get_selected_stat() -> StatPrototype:
+	if stat_set == null or %stat_list == null or not %stat_list.is_anything_selected():
+		return null
+	var selected = %stat_list.get_selected_items()
+	return %stat_list.get_item_metadata(selected[0])
+
+func set_selected_stat(proto:StatPrototype) -> bool:
+	if stat_set == null or %stat_list == null:
+		return false
+	if proto == null:
+		var was_selected = %stat_list.is_anything_selected()
+		%stat_list.deselect_all()
+		return was_selected
+	for i in range(%stat_list.item_count):
+		if %stat_list.get_item_metadata(i) == proto:
+			%stat_list.select(i)
+			return true
+	return false
+
+func _on_add_stat():
+	if stat_set == null or %prototype_type.get_selected_string() == \"\":
+		return
+	var new_proto = StatsTools.instaniatae_named(%prototype_type.get_selected_string())
+	stat_set.reset_stat(new_proto)
+	set_selected_stat(new_proto)
+
+func _on_del_stat():
+	var selected := get_selected_stat()
+	if selected == null:
+		return
+	stat_set.erase_stat(selected)
+
+func _update_stat_list(_1 = null, _2 = null, _3 = null):
+	if stat_set == null:
+		return
+	print(\"uppies: \", _1)
+	var selected := get_selected_stat()
+	%stat_list.clear()
+	for proto in stat_set.prototypes():
+		var name := proto.name
+		var index = %stat_list.add_item(\"%s <%s>\" % [name, StatsTools.get_class_name(proto)])
+		%stat_list.set_item_metadata(index, proto)
+		if proto == selected and selected != null:
+			%stat_list.select(index)
+
+func _on_stat_selected(_1 = null):
+	if stat_set == null:
+		return
+	var selected := get_selected_stat()
+	if selected == null:
+		for child in %prototype_editor_root.get_children():
+			child.queue_free()
+		return
+	var expected_display_type := selected.editing_display_type
+	if expected_display_type != expected_display_type or _current_editor_for_metatype_is == \"\":
+		for child in %prototype_editor_root.get_children():
+			child.queue_free()
+		var new_kid := StatsTools.instaniatae_named(expected_display_type)
+		%prototype_editor_root.add_child(new_kid)
+		_current_editor_for_metatype_is = expected_display_type
+	if %prototype_editor_root.get_child_count() > 0:
+		%prototype_editor_root.get_child(0).prototype = selected
+	%prototype_type.set_selected_string(StatsTools.get_class_name(selected))
+	_update_value()
+
+func _update_value(_1 = null, _2 = null, _3 = null):
+	var proto := get_selected_stat()
+	if stat_set == null or proto == null:
+		return
+	%value_edit.text = proto.as_string(stat_set.get_stat(proto))
+
+func _value_changed():
+	var proto := get_selected_stat()
+	if stat_set == null or proto == null:
+		return
+	stat_set.set_stat(proto, proto.from_string(%value_edit.text))
+
+func _on_gui_input(e:InputEvent):
+	if e.is_action_pressed(\"ui_accept\"):
+		_value_changed()
+"
+
+[sub_resource type="GDScript" id="GDScript_a08g6"]
+resource_name = "PrototypeSelectOptionButtonBehave"
+script/source = "@tool
+
+extends OptionButton
+
+func _enter_tree() -> void:
+	if not pressed.is_connected(_update):
+		pressed.connect(_update)
+
+func _ready() -> void:
+	_update()
+	if not pressed.is_connected(_update):
+		pressed.connect(_update)
+
+func _update():
+	var sel := get_selected_string()
+	clear()
+	var names := StatsTools.get_classes_inheriting(\"StatPrototype\", false, true)
+	names.append(\"StatPrototype\")
+	for i in range(names.size()):
+		var name := names[i]
+		add_item(name)
+		if name == sel:
+			select(i)
+
+func get_selected_string() -> String:
+	var id := get_selected_id()
+	if id >= 0:
+		return get_item_text(get_item_index(id))
+	return \"\"
+
+func set_selected_string(value:String):
+	for index in range(item_count):
+		if get_item_text(index) == value:
+			select(index)
+			return
+"
+
+[node name="PanelContainer" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 300)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = SubResource("GDScript_pacnf")
+
+[node name="StatSetEditor" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="_VB" type="VBoxContainer" parent="StatSetEditor"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+
+[node name="stat_list" type="ItemList" parent="StatSetEditor/_VB"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+focus_neighbor_left = NodePath("../../_VB2/_HB/value_edit")
+focus_neighbor_top = NodePath("../remove_button")
+focus_neighbor_right = NodePath("../../_VB2/_HB/value_edit")
+focus_neighbor_bottom = NodePath("../_HB/prototype_type")
+focus_next = NodePath("../_HB/prototype_type")
+focus_previous = NodePath("../remove_button")
+allow_reselect = true
+
+[node name="_HS" type="HSeparator" parent="StatSetEditor/_VB"]
+layout_mode = 2
+
+[node name="_HB" type="HBoxContainer" parent="StatSetEditor/_VB"]
+layout_mode = 2
+
+[node name="prototype_type" type="OptionButton" parent="StatSetEditor/_VB/_HB"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_neighbor_left = NodePath("../../../_VB2/_HB/value_edit")
+focus_neighbor_top = NodePath("../../stat_list")
+focus_neighbor_right = NodePath("../add_button")
+focus_neighbor_bottom = NodePath("../../remove_button")
+focus_next = NodePath("../add_button")
+focus_previous = NodePath("../../stat_list")
+selected = 0
+allow_reselect = true
+item_count = 2
+popup/item_0/text = "StatPrototypeNumeric"
+popup/item_1/text = "StatPrototype"
+popup/item_1/id = 1
+script = SubResource("GDScript_a08g6")
+
+[node name="add_button" type="Button" parent="StatSetEditor/_VB/_HB"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_neighbor_left = NodePath("../prototype_type")
+focus_neighbor_top = NodePath("../../stat_list")
+focus_neighbor_right = NodePath("../../../_VB2/_HB/value_edit")
+focus_neighbor_bottom = NodePath("../../remove_button")
+focus_next = NodePath("../../remove_button")
+focus_previous = NodePath("../prototype_type")
+text = "+ Add Stat"
+
+[node name="remove_button" type="Button" parent="StatSetEditor/_VB"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_neighbor_left = NodePath("../../_VB2/_HB/value_edit")
+focus_neighbor_top = NodePath("../_HB/prototype_type")
+focus_neighbor_right = NodePath("../../_VB2/_HB/value_edit")
+focus_neighbor_bottom = NodePath("../stat_list")
+focus_next = NodePath("../stat_list")
+focus_previous = NodePath("../_HB/add_button")
+text = "- Remove Stat"
+
+[node name="_VS" type="VSeparator" parent="StatSetEditor"]
+layout_mode = 2
+
+[node name="_VB2" type="VBoxContainer" parent="StatSetEditor"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="_HB" type="HBoxContainer" parent="StatSetEditor/_VB2"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="_L" type="Label" parent="StatSetEditor/_VB2/_HB"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+size_flags_stretch_ratio = 0.5
+text = "Value"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="value_edit" type="TextEdit" parent="StatSetEditor/_VB2/_HB"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_neighbor_left = NodePath("../../../_VB/stat_list")
+focus_neighbor_right = NodePath("../../../_VB/stat_list")
+focus_previous = NodePath("../../../_VB/remove_button")
+
+[node name="_HS" type="HSeparator" parent="StatSetEditor/_VB2"]
+layout_mode = 2
+
+[node name="_L" type="Label" parent="StatSetEditor/_VB2"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+size_flags_stretch_ratio = 0.5
+text = "Prototype Settings:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="prototype_editor_root" type="MarginContainer" parent="StatSetEditor/_VB2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[connection signal="visibility_changed" from="." to="." method="_update_stat_list"]
+[connection signal="item_activated" from="StatSetEditor/_VB/stat_list" to="." method="_on_stat_selected"]
+[connection signal="item_selected" from="StatSetEditor/_VB/stat_list" to="." method="_on_stat_selected"]
+[connection signal="pressed" from="StatSetEditor/_VB/_HB/add_button" to="." method="_on_add_stat"]
+[connection signal="pressed" from="StatSetEditor/_VB/remove_button" to="." method="_on_del_stat"]
+[connection signal="focus_exited" from="StatSetEditor/_VB2/_HB/value_edit" to="." method="_value_changed"]
+[connection signal="gui_input" from="StatSetEditor/_VB2/_HB/value_edit" to="." method="_on_gui_input"]

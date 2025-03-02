@@ -1,0 +1,124 @@
+[gd_scene load_steps=2 format=3 uid="uid://dlk4akpk3cgo"]
+
+[sub_resource type="GDScript" id="GDScript_ffyj4"]
+script/source = "@tool
+
+extends Control
+
+@export var prototype:StatPrototype = null:
+	get:
+		return prototype
+	set(_value):
+		prototype = _value
+		_update_display()
+
+func _ready():
+	# doing this to ensure that signals are properly connected
+	_update_display()
+
+func _update_display():
+	if prototype == null:
+		return
+	
+	if %name_edit != null:
+		%name_edit.text = prototype.name
+	if %default_edit != null:
+		%default_edit.text = prototype.as_string(prototype.default_value)
+
+func _update_prototype():
+	if prototype == null:
+		return
+	
+	if %name_edit != null:
+		prototype.name = %name_edit.text
+	if %default_edit != null:
+		var value = null
+		if %default_edit.text != \"null\":
+			value = prototype.from_string(%default_edit.text)
+		prototype.default_value = value
+	
+	_update_display()
+
+func _on_gui_input(e:InputEvent):
+	if e.is_action_pressed(\"ui_accept\"):
+		_update_prototype()
+"
+
+[node name="StatPrototypeEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_next = NodePath("PanelContainer/VBoxContainer/HBoxContainer/name_edit")
+focus_previous = NodePath("PanelContainer/VBoxContainer/HBoxContainer2/default_edit")
+focus_mode = 1
+script = SubResource("GDScript_ffyj4")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "Name"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="name_edit" type="TextEdit" parent="PanelContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_neighbor_left = NodePath("../../../..")
+focus_neighbor_top = NodePath("../../../..")
+focus_neighbor_right = NodePath("../../HBoxContainer2/default_edit")
+focus_neighbor_bottom = NodePath("../../HBoxContainer2/default_edit")
+focus_next = NodePath("../../HBoxContainer2/default_edit")
+focus_previous = NodePath("../../../..")
+placeholder_text = "Name..."
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "Default Value"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="default_edit" type="TextEdit" parent="PanelContainer/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_neighbor_left = NodePath("../../HBoxContainer/name_edit")
+focus_neighbor_top = NodePath("../../HBoxContainer/name_edit")
+focus_neighbor_right = NodePath("../../../..")
+focus_neighbor_bottom = NodePath("../../../..")
+focus_next = NodePath("../../../..")
+focus_previous = NodePath("../../HBoxContainer/name_edit")
+placeholder_text = "Default Value..."
+
+[connection signal="focus_exited" from="PanelContainer/VBoxContainer/HBoxContainer/name_edit" to="." method="_update_prototype"]
+[connection signal="gui_input" from="PanelContainer/VBoxContainer/HBoxContainer/name_edit" to="." method="_on_gui_input"]
+[connection signal="focus_exited" from="PanelContainer/VBoxContainer/HBoxContainer2/default_edit" to="." method="_update_prototype"]
+[connection signal="gui_input" from="PanelContainer/VBoxContainer/HBoxContainer2/default_edit" to="." method="_on_gui_input"]
