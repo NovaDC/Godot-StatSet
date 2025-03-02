@@ -79,14 +79,16 @@ func __on_prototype_changed(proto:StatPrototype):
 	post_prototype_change.emit(proto)
 
 func _validate_property(property: Dictionary):
-	if property["name"] == ["_stat_mapping", "_stat_pre_signals", "_stat_post_signals", "stat_mapping", "stat_pre_signals", "stat_post_signals"]:
-		#read only in the inspector
+	#always read only in the inspector
+	if property["name"] in ["_stat_mapping", "_stat_pre_signals", "_stat_post_signals", "stat_mapping", "stat_pre_signals", "stat_post_signals"]:
 		property["usage"] |= PROPERTY_USAGE_READ_ONLY
+	
+	#never save when saving resource
 	if property["name"] in ["_stat_pre_signals", "_stat_post_signals", "stat_mapping", "stat_pre_signals", "stat_post_signals"]:
-		#dont save when saving resource
 		property["usage"] &= ~PROPERTY_USAGE_STORAGE
+	
+	#never show in editor
 	if property["name"] in ["_stat_mapping", "_stat_pre_signals", "_stat_post_signals"]:
-		#dont show in editor
 		property["usage"] &= ~PROPERTY_USAGE_EDITOR
 
 ## Gets the value of the stat with the given [param proto] [StatPrototype].[br]
@@ -227,19 +229,6 @@ func set_stats(stat_mapping:Dictionary, assert_unconstrained:=false):
 func reset_stat(proto:StatPrototype, assert_unconstrained:=false):
 	set_stat(proto, proto.default_value, assert_unconstrained)
 
-## Returns the values of stats filtered by [param item_filter].[br]
-## It's exprected that [param item_filter] takes a [StatPrototype] and it's [Variant] value
-## and returns a [bool] siginifying weather or not the value should be included in the output of this function.[br]
-## A more specifically usefull function for filtering certian values than calling [method Array.filter]
-## on [method value], as it includes the [StatPrototype]context.
-func values_item_filtered(item_filter:Callable) -> Array[Variant]:
-	var values:Array[Variant] = []
-	for p in prototypes():
-		var v:Variant = get_stat(p)
-		if item_filter.call(p, v):
-			values.append(v)
-	return values
-
 ## Returns all the [method prototypes] with the given [param name].[br]
 ## As multiple [StatPrototype]s can have the same [member StatPrototype.name], this
 ## returns an [Array] of possible [StatPrototype]s, including a empty one if
@@ -247,19 +236,7 @@ func values_item_filtered(item_filter:Callable) -> Array[Variant]:
 func protoypes_named(name:String) -> Array[StatPrototype]:
 	return prototypes().filter(func (x:StatPrototype): return x.name == name)
 
-## Returns all the [method values] associated with a [StatPrototype] with the given [param name].[br]
-## As multiple [StatPrototype]s can have the same [member StatPrototype.name], this
-## returns an [Array] of possible values, including a empty one if
-## no valid [StatPrototype]s were found.
-func get_stats_named(name:String) -> Array[Variant]:
-	return protoypes_named(name).map(func (x:StatPrototype): return get_stat(x))
-
-## Returns weather or not any of this [StatSet]s [method StatSet.prototypes] as a
-## [member StatPrototype.name] that matches [param name].
-func has_stats_named(name:String) -> bool:
-	return prototypes().any(func (x:StatPrototype): return x.name == name)
-
 ## Retreve the a new approprate [StatDisplayBase] instance for the given [param proto] [StatPrototype].
 func get_stat_display(proto:StatPrototype, display_context := "") -> StatDisplayBase: #a class name to insintate
 	var name_or_path:StringName = proto.display_type[display_context] if display_context in proto.display_type else (proto.display_type[""] if "" in proto.display_type else display_default_class_name)
-	return StatsTools.instaniatae_named(name_or_path) as StatDisplayBase
+	return NovaTools.instantiate_this(name_or_path) as StatDisplayBase

@@ -47,7 +47,7 @@ func _make_stat_display(proto:StatPrototype):
 		add_child(c)
 
 func _kill_stat_display(proto:StatPrototype):
-	for c in _managed_nodes.filter(func (n:Node): return n.stat_prototype == proto):
+	for c in _managed_nodes.filter(func (n:Node): return n != null and "stat_prototype" in n and n.stat_prototype == proto):
 		_managed_nodes.erase(c)
 		c.queue_free()
 

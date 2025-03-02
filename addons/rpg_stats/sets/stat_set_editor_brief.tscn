@@ -60,7 +60,7 @@ func set_selected_stat(proto:StatPrototype) -> bool:
 func _on_add_stat():
 	if stat_set == null or %prototype_type.get_selected_string() == \"\":
 		return
-	var new_proto = StatsTools.instaniatae_named(%prototype_type.get_selected_string())
+	var new_proto = NovaTools.instantiate_this(%prototype_type.get_selected_string())
 	stat_set.reset_stat(new_proto)
 	set_selected_stat(new_proto)
 
@@ -78,7 +78,7 @@ func _update_stat_list(_1 = null, _2 = null, _3 = null):
 	%stat_list.clear()
 	for proto in stat_set.prototypes():
 		var name := proto.name
-		var index = %stat_list.add_item(\"%s <%s>\" % [name, StatsTools.get_class_name(proto)])
+		var index = %stat_list.add_item(\"%s <%s>\" % [name, NovaTools.get_class_name(proto)])
 		%stat_list.set_item_metadata(index, proto)
 		if proto == selected and selected != null:
 			%stat_list.select(index)
@@ -95,12 +95,12 @@ func _on_stat_selected(_1 = null):
 	if expected_display_type != expected_display_type or _current_editor_for_metatype_is == \"\":
 		for child in %prototype_editor_root.get_children():
 			child.queue_free()
-		var new_kid := StatsTools.instaniatae_named(expected_display_type)
+		var new_kid := NovaTools.instantiate_this(expected_display_type)
 		%prototype_editor_root.add_child(new_kid)
 		_current_editor_for_metatype_is = expected_display_type
 	if %prototype_editor_root.get_child_count() > 0:
 		%prototype_editor_root.get_child(0).prototype = selected
-	%prototype_type.set_selected_string(StatsTools.get_class_name(selected))
+	%prototype_type.set_selected_string(NovaTools.get_class_name(selected))
 	_update_value()
 
 func _update_value(_1 = null, _2 = null, _3 = null):
@@ -138,7 +138,7 @@ func _ready() -> void:
 func _update():
 	var sel := get_selected_string()
 	clear()
-	var names := StatsTools.get_classes_inheriting(\"StatPrototype\", false, true)
+	var names := NovaTools.get_classes_inheriting(\"StatPrototype\", false, true)
 	names.append(\"StatPrototype\")
 	for i in range(names.size()):
 		var name := names[i]

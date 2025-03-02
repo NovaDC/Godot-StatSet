@@ -1,6 +1,6 @@
 @tool
 
-class_name StatsTools
+class_name HiddenStatsTools
 
 #TODO once novatools are updates, use that instead of these
 
