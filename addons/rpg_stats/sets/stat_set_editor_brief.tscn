@@ -34,6 +34,8 @@ var _current_editor_for_metatype_is:String = \"\"
 
 func _ready() -> void:
 	stat_set = stat_set
+	%add_button.icon = NovaTools.get_editor_icon_named(\"Add\")
+	%remove_button.icon = NovaTools.get_editor_icon_named(\"Remove\")
 
 func _enter_tree() -> void:
 	stat_set = stat_set
@@ -160,7 +162,7 @@ func set_selected_string(value:String):
 "
 
 [node name="PanelContainer" type="PanelContainer"]
-custom_minimum_size = Vector2(0, 300)
+custom_minimum_size = Vector2(0, 200)
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -226,7 +228,8 @@ focus_neighbor_right = NodePath("../../../_VB2/_HB/value_edit")
 focus_neighbor_bottom = NodePath("../../remove_button")
 focus_next = NodePath("../../remove_button")
 focus_previous = NodePath("../prototype_type")
-text = "+ Add Stat"
+text = "Add Stat"
+expand_icon = true
 
 [node name="remove_button" type="Button" parent="StatSetEditor/_VB"]
 unique_name_in_owner = true
@@ -237,7 +240,8 @@ focus_neighbor_right = NodePath("../../_VB2/_HB/value_edit")
 focus_neighbor_bottom = NodePath("../stat_list")
 focus_next = NodePath("../stat_list")
 focus_previous = NodePath("../_HB/add_button")
-text = "- Remove Stat"
+text = "Remove Stat"
+expand_icon = true
 
 [node name="_VS" type="VSeparator" parent="StatSetEditor"]
 layout_mode = 2

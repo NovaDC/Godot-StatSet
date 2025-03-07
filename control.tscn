@@ -61,7 +61,7 @@ SubResource("Resource_faxwv"): 3
 
 [node name="StatSetDisplayDefault" type="VBoxContainer" parent="." node_paths=PackedStringArray("stat_set")]
 layout_mode = 0
-offset_right = 116.0
-offset_bottom = 143.0
+offset_right = 385.0
+offset_bottom = 218.0
 script = ExtResource("2_mn85m")
 stat_set = NodePath("../StatSetEffectable")

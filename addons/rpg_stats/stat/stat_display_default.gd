@@ -5,6 +5,10 @@ extends StatDisplayBase
 var _display_label_ref:Label = null
 var _display_prog_bar_ref:ProgressBar = null
 
+func _ready() -> void:
+	size_flags_vertical |= Control.SIZE_FILL | Control.SIZE_EXPAND
+	size_flags_horizontal |= Control.SIZE_FILL | Control.SIZE_EXPAND
+
 func _update_display():
 	visible = not (stat_set == null or stat_prototype == null)
 	if visible:
@@ -13,12 +17,18 @@ func _update_display():
 		if _display_label_ref.get_parent() != self:
 			add_child(_display_label_ref)
 		_display_label_ref.set_anchors_preset(PRESET_FULL_RECT)
+		_display_label_ref.size_flags_vertical |= Control.SIZE_FILL | Control.SIZE_EXPAND
+		_display_label_ref.size_flags_horizontal |= Control.SIZE_FILL | Control.SIZE_EXPAND
+		_display_label_ref.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_display_label_ref.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		if stat_prototype is StatPrototypeNumeric:
 			if _display_prog_bar_ref == null:
 				_display_prog_bar_ref = ProgressBar.new()
 			if _display_prog_bar_ref.get_parent() != self:
 				add_child(_display_prog_bar_ref)
 			_display_prog_bar_ref.set_anchors_preset(PRESET_FULL_RECT)
+			_display_prog_bar_ref.size_flags_vertical |= Control.SIZE_FILL | Control.SIZE_EXPAND
+			_display_prog_bar_ref.size_flags_horizontal |= Control.SIZE_FILL | Control.SIZE_EXPAND
 			_display_prog_bar_ref.allow_greater = true
 			_display_prog_bar_ref.allow_lesser = true
 		else:

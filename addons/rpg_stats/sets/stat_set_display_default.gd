@@ -45,8 +45,6 @@ func _make_stat_display(proto:StatPrototype):
 		_managed_nodes.append(c)
 		c.stat_set = stat_set
 		c.stat_prototype = proto
-		c.size_flags_vertical |= Control.SIZE_FILL | Control.SIZE_EXPAND
-		c.size_flags_horizontal |= Control.SIZE_FILL | Control.SIZE_EXPAND
 		add_child(c)
 
 func _kill_stat_display(proto:StatPrototype):
