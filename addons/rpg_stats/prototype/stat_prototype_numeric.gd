@@ -1,7 +1,6 @@
 @tool
-
-extends StatPrototype
 class_name StatPrototypeNumeric
+extends StatPrototype
 
 @export var minimum:float = -INF:
 	get:

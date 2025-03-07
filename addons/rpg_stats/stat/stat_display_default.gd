@@ -1,7 +1,6 @@
 @tool
-
-extends StatDisplayBase
 class_name StatDisplayDefault
+extends StatDisplayBase
 
 var _display_label_ref:Label = null
 var _display_prog_bar_ref:ProgressBar = null
@@ -25,7 +24,7 @@ func _update_display():
 		else:
 			if _display_prog_bar_ref != null:
 				_display_prog_bar_ref.queue_free()
-		
+
 		_display_label_ref.text = stat_prototype.name + ": " + str(stat_set.get_stat(stat_prototype))
 		if _display_prog_bar_ref != null:
 			if (not is_inf(stat_prototype.minimum)) and (not is_inf(stat_prototype.minimum)):

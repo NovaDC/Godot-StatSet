@@ -1,12 +1,9 @@
 @tool
-
-extends Resource
 class_name StatEffect
-
-#TODO signal sent when effect applies to setting an getting, make overriadeable methods seprate form the public mehtoods used, hook into there
+extends Resource
 
 ## INTENDED AS ABSTRACT
-## A method used to retreve the effect nome for this effect.[br]
+## A method used to retrieve the effect nome for this effect.[br]
 ## NOTE: The effect name is not the unique identifier for the effect,
 ## and can change in diffrent contexts, as it's really intended for use in displays and the editor.
 func get_effect_name(prototype:StatPrototype, statset:StatSet) -> String:
@@ -20,7 +17,7 @@ func get_effect_display_type(statset:StatSet, display_context:="") -> String:
 	return ""
 
 ## INTENDED VIRTUAL
-## Returns waether or not this effect would change (effect) the [param prototype] on the given
+## Returns weather or not this effect would change (effect) the [param prototype] on the given
 ## [StatSet] [param statset] when getting the value.[br]
 ## NOTE: THIS SHOULD NOT CHANGE THE STAT SET AT ALL, THIS IS ONLY USED TO SEE WEATHER
 ## OR NOT THIS WOULD CHANGE THE STAT.
@@ -28,7 +25,7 @@ func is_effecting_getting(working_value:Variant, prototype:StatPrototype, statse
 	return false
 
 ## INTENDED VIRTUAL
-## Returns waether or not this effect would change (effect) the [param prototype] on the given
+## Returns weather or not this effect would change (effect) the [param prototype] on the given
 ## [StatSet] [param statset] when setting the value.[br]
 ## NOTE: THIS SHOULD NOT CHANGE THE STAT SET AT ALL, THIS IS ONLY USED TO SEE WEATHER
 ## OR NOT THIS WOULD CHANGE THE STAT.
@@ -38,43 +35,48 @@ func is_effecting_setting(working_value:Variant, prototype:StatPrototype, statse
 ## INTENDED VIRTUAL
 ## The numeric order to apply this effect (compared to all other effects),
 ## to the [param prototype] on the given [StatSet] [param statset] when getting the value.[br]
-## Smaller (more negitive) priorties are always ealrier than larger (more positive) priorties.
+## Smaller (more negative) priorties are always earlier than larger (more positive) priorties.
 ## This defaults to 0.
-func effect_getting_priorty(prototype:StatPrototype, statset:StatSet) -> int:
+func effect_getting_priority(prototype:StatPrototype, statset:StatSet) -> int:
 	return 0
 
 ## INTENDED VIRTUAL
 ## The numeric order to apply this effect (compared to all other effects),
 ## to the [param prototype] on the given [StatSet] [param statset] when setting the value.[br]
-## Smaller (more negitive) priorties are always ealrier than larger (more positive) priorties.
+## Smaller (more negative) priorties are always earlier than larger (more positive) priorties.
 ## This defaults to 0.
-func effect_setting_priorty(prototype:StatPrototype, statset:StatSet) -> int:
+func effect_setting_priority(prototype:StatPrototype, statset:StatSet) -> int:
 	return 0
 
 ## INTENDED VIRTUAL
-## Returns the value from the given [StatSet] [param statset] when effecting the getting of that stat.[br]
-## This fucntion will only be called if [method get_effects_getting_stat] returns true for the same
+## Returns the value from the given [StatSet] [param statset]
+## when effecting the getting of that stat.[br]
+## This function will only be called if [method get_effects_getting_stat] returns true for the same
 ## [param prototype] and [param statset].[br]
 ## NOTE: [param stat_value] is the value that the effect should modify,
 ## not the value currently in [param statset].[br]
-## NOTE: [param statset] is here for the sake of chjecking what other [StatPrototype]s are inside.
-## It's heavily advised against reading any [i]values[/i] from [param statset] in this function, 
+## NOTE: [param statset] is here for the sake of checking what other [StatPrototype]s are inside.
+## It's heavily advised against reading any [i]values[/i] from [param statset] in this function,
 ## and reading [param prototype] from [param statset] if [param statset] is a [StatSetEffectable]
 ## will result in infinite recursion!
 func effect_getting(workign_value:Variant, prototype:StatPrototype, statset:StatSet) -> Variant:
 	return workign_value
 
 ### INTENDED VIRTUAL
-## Returns the value from the given [StatSet] [param statset] when effecting the setting of that stat.[br]
-## This fucntion will only be called if [method get_effects_setting_stat] returns true for the same
+## Returns the value from the given [StatSet] [param statset]
+## when effecting the setting of that stat.[br]
+## This function will only be called if [method get_effects_setting_stat] returns true for the same
 ## [param prototype] and [param statset].[br]
-## NOTE: This method should [b]NOT[/b] set the [param statset] itself! This will cause inifnite recursion.
+## NOTE: This method should [b]NOT[/b] set the [param statset] itself!
+## This will cause infinite recursion.
 ## This method only returns the [param stat_value] after this effect effects it.
 ## NOTE: [param stat_value] is the value that the effect should modify,
 ## not the value currently in [param statset].[br]
-## NOTE: [param statset] is here for the sake of chjecking what other [StatPrototype]s are inside.
-## It's heavily advised against reading any [i]values[/i] from [param statset] in this function, 
+## NOTE: [param statset] is here for the sake of checking what other [StatPrototype]s are inside.
+## It's heavily advised against reading any [i]values[/i] from [param statset] in this function,
 ## and reading [param prototype] from [param statset] if [param statset] is a [StatSetEffectable]
 ## will result in infinite recursion!
 func effect_setting(workign_value:Variant, prototype:StatPrototype, statset:StatSet) -> Variant:
 	return workign_value
+
+

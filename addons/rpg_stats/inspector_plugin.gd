@@ -1,7 +1,6 @@
 @tool
-
-extends EditorInspectorPlugin
 class_name StatSetEditorInspectorPlugin
+extends EditorInspectorPlugin
 
 const STAT_SET_EDITOR_BRIEF = preload("res://addons/rpg_stats/sets/stat_set_editor_brief.tscn")
 

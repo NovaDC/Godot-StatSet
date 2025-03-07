@@ -1,9 +1,10 @@
 @tool
-
-extends VBoxContainer
 class_name StatSetDisplayDefault
+extends VBoxContainer
 
-# This class ignores all display params and has only a default context, its jsut a plain old vbox that updates with a stat set, basically
+
+# This class ignores all display params and has only a default context,
+# its just a plain old vbox that updates with a stat set, basically
 
 @export var stat_set:StatSet = null:
 	get:
@@ -44,10 +45,12 @@ func _make_stat_display(proto:StatPrototype):
 		_managed_nodes.append(c)
 		c.stat_set = stat_set
 		c.stat_prototype = proto
+		c.size_flags_vertical |= Control.SIZE_FILL | Control.SIZE_EXPAND
+		c.size_flags_horizontal |= Control.SIZE_FILL | Control.SIZE_EXPAND
 		add_child(c)
 
 func _kill_stat_display(proto:StatPrototype):
-	for c in _managed_nodes.filter(func (n:Node): return n != null and "stat_prototype" in n and n.stat_prototype == proto):
+	for c in _managed_nodes.filter(func (n): return n.stat_prototype == proto):
 		_managed_nodes.erase(c)
 		c.queue_free()
 

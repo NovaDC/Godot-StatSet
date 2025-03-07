@@ -1,9 +1,9 @@
 [gd_scene load_steps=9 format=3 uid="uid://cmdy8ln12gceh"]
 
-[ext_resource type="Script" path="res://addons/rpg_stats_effectable/stat_set_effectable.gd" id="1_8yk2h"]
-[ext_resource type="Script" path="res://addons/rpg_stats/sets/stat_set_display_default.gd" id="2_mn85m"]
-[ext_resource type="Script" path="res://addons/rpg_stats/prototype/stat_prototype.gd" id="2_w1188"]
-[ext_resource type="Script" path="res://addons/rpg_stats/prototype/stat_prototype_numeric.gd" id="3_w0h3b"]
+[ext_resource type="Script" uid="uid://badeqxyxial4i" path="res://addons/rpg_stats_effectable/stat_set_effectable.gd" id="1_8yk2h"]
+[ext_resource type="Script" uid="uid://dc8vjj1bwwa4l" path="res://addons/rpg_stats/sets/stat_set_display_default.gd" id="2_mn85m"]
+[ext_resource type="Script" uid="uid://ybsjvdbkwotu" path="res://addons/rpg_stats/prototype/stat_prototype.gd" id="2_w1188"]
+[ext_resource type="Script" uid="uid://b4x6ixtdung1a" path="res://addons/rpg_stats/prototype/stat_prototype_numeric.gd" id="3_w0h3b"]
 
 [sub_resource type="Resource" id="Resource_6cbop"]
 script = ExtResource("2_w1188")
@@ -61,7 +61,7 @@ SubResource("Resource_faxwv"): 3
 
 [node name="StatSetDisplayDefault" type="VBoxContainer" parent="." node_paths=PackedStringArray("stat_set")]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_right = 116.0
+offset_bottom = 143.0
 script = ExtResource("2_mn85m")
 stat_set = NodePath("../StatSetEffectable")

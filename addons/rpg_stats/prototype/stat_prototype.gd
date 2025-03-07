@@ -1,10 +1,9 @@
 @tool
-
-extends Resource
 class_name StatPrototype
+extends Resource
 
-## The name of this stat protoype.[br]
-## NOTE: This is not the unique identfifier for a stat! This is only intended for use in displays.
+## The name of this stat prototype.[br]
+## NOTE: This is not the unique identifier for a stat! This is only intended for use in displays.
 @export var name := "":
 	get:
 		return name
@@ -17,7 +16,7 @@ class_name StatPrototype
 			emit_changed()
 @export var default_value:Variant = null: get = _get_default_value, set = _set_default_value
 
-#These properties bllow arnt "observable" (aka they may not call the changed event when changed!
+#These properties bellow arn't "observable" (aka they may not call the changed event when changed!
 @export var display_type := {} #a dict mapping display contexts to the display type to use
 @export var editing_display_type := "res://addons/rpg_stats/prototype/stat_prototype_editor.tscn"
 
