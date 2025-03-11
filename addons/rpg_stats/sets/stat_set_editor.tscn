@@ -75,7 +75,6 @@ func _on_del_stat():
 func _update_stat_list(_1 = null, _2 = null, _3 = null):
 	if stat_set == null:
 		return
-	print(\"uppies: \", _1)
 	var selected := get_selected_stat()
 	%stat_list.clear()
 	for proto in stat_set.prototypes():
@@ -138,14 +137,14 @@ func _ready() -> void:
 		pressed.connect(_update)
 
 func _update():
-	var sel := get_selected_string()
+	var selected := get_selected_string()
 	clear()
 	var names := NovaTools.get_classes_inheriting(\"StatPrototype\", false, true)
 	names.append(\"StatPrototype\")
 	for i in range(names.size()):
 		var name := names[i]
 		add_item(name)
-		if name == sel:
+		if name == selected:
 			select(i)
 
 func get_selected_string() -> String:

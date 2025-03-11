@@ -2,6 +2,13 @@
 class_name StatDisplayDefault
 extends StatDisplayBase
 
+## StatDisplayDefault
+##
+## This is a default [StatDisplayBase] that just displays the stat value as a label.[br]
+## This may also show a [ProgressBar] if the stat a [StatPrototypeNumeric].[br]
+## To be used as a example of how to make a [StatDisplayBase],
+## or for other kinds of prototypes. Hey, I don't judge...
+
 var _display_label_ref:Label = null
 var _display_prog_bar_ref:ProgressBar = null
 
@@ -41,7 +48,7 @@ func _update_display():
 				_display_prog_bar_ref.visible = true
 				_display_prog_bar_ref.min_value = stat_prototype.minimum
 				_display_prog_bar_ref.max_value = stat_prototype.maximum
-				_display_prog_bar_ref.step = 1 if stat_prototype.intiger_truncated else 0.01
+				_display_prog_bar_ref.step = 1.0 if stat_prototype.intiger_truncated else 0.01
 				_display_prog_bar_ref.value = get_current_value()
 			else:
 				_display_prog_bar_ref.visible = false

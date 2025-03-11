@@ -2,15 +2,30 @@
 class_name StatSet
 extends Node
 
+## StatSet
+##
+## Conceptually similar to a [Dictionary], but with the ability to monitor
+## itself for changes (this does not monitor for mutations outside of
+## specifically defined methods below), and that keys must be an instance of
+## [StatPrototype].[br]
+## "stat"s are not referenced by their names, and multiple stats can have the same name,
+## as long as their [StatPrototype]s are different.[br]
+## The constraints that may be imposed by a [StatPrototype] are always enforced, either by
+## applying them to the value being set, or by throwing an exception
+## if specifically defined in a method that allows for it.[br]
+## Note that the possible values of a stat can be any kind of [Variant] value, and the limiting of
+## the possible types is to be handled by the [StatPrototype] instead.[br]
+## [StatSet]s are serilizable like any other node.
+
 ## Called before [b]any[/b] stat is changed on this [StatSet].[br]
 ## To subscribe to specific stats, see [method get_pre_signal] and subscribe to that.[br]
 ## NOTE: when adding a stat for the first time, it's [param previous_value] will be the same
-## as the [member StatPrototype.default_value]
+## as the [member StatPrototype.default_value].
 signal pre_stat_change(stat:StatPrototype, previous_value:Variant, working_value:Variant)
 ## Called after [b]any[/b] stat is changed on this [StatSet].[br]
 ## To subscribe to specific stats, see [method get_post_signal] and subscribe to that.[br]
 ## NOTE: when adding a stat for the first time, it's [param previous_value] will be the same
-## as the [member StatPrototype.default_value]
+## as the [member StatPrototype.default_value].
 signal post_stat_change(stat:StatPrototype, previous_value:Variant, working_value:Variant)
 ## Called whenever a stat is added to this [StatSet].[br]
 ## This signal is also sent when this [Node] is [method _ready] for
@@ -26,9 +41,9 @@ signal stat_erased(stat:StatPrototype)
 signal post_prototype_change(proto:StatPrototype)
 
 
-@export var _stat_mapping := {} #statprototype to the working value
-@export var _stat_pre_signals := {} #statprototype to signals
-@export var _stat_post_signals := {} #statprototype to signals
+@export var _stat_mapping := {} #StatPrototype to the working value
+@export var _stat_pre_signals := {} #StatPrototype to signals
+@export var _stat_post_signals := {} #StatPrototype to signals
 
 ## A readonly view of the internal dict used by this stat set for values of stats.
 ## Modifying this [Dictionary] itself will not effect the stat set, as it is a readonly copy,
@@ -134,7 +149,7 @@ func set_stat(proto:StatPrototype,
 					value:Variant = null,
 					assert_unconstrained:=false
 					):
-	#USE THIS WHEN POSSIBLE!
+	#USE THIS WHERE POSSIBLE!
 	#THIS ENSURE VALUES ARE PROPERLY CONTRAINED! USE THIS EVEN WHEN EXTENDING THIS CLASS!
 	if assert_unconstrained:
 		_assert_unconstrained_exception(not proto.will_be_constrained(value), proto, value)
@@ -244,13 +259,13 @@ func get_stat_or_add(proto:StatPrototype,
 ## Unlike using [method set_stat] repeatedly, this will [param assert_unconstrained]
 ## before anything is ever set. Otherwise, this is a convenience function
 ## for bulk setting fo stats.
-func set_stats(stat_mapping:Dictionary, assert_unconstrained:=false):
+func set_stats(stats:Dictionary, assert_unconstrained:=false):
 	if assert_unconstrained:
 		#never set if anything going to be asserted, so check first before setting
-		for p in stat_mapping.keys():
-			_assert_unconstrained_exception(not p.will_be_constrained(stat_mapping[p]), p, stat_mapping[p])
-	for p in stat_mapping.keys():
-		set_stat(p, stat_mapping[p], assert_unconstrained)
+		for p in stats.keys():
+			_assert_unconstrained_exception(not p.will_be_constrained(stats[p]), p, stats[p])
+	for p in stats.keys():
+		set_stat(p, stats[p], assert_unconstrained)
 
 ## Set (or add) the given [param proto] [StatPrototype]
 ## to it's [member StatPrototype.default_value].[br]
@@ -262,8 +277,8 @@ func reset_stat(proto:StatPrototype, assert_unconstrained:=false):
 ## As multiple [StatPrototype]s can have the same [member StatPrototype.name], this
 ## returns an [Array] of possible [StatPrototype]s, including a empty one if
 ## no valid [StatPrototype]s were found.
-func protoypes_named(name:String) -> Array[StatPrototype]:
-	return prototypes().filter(func (x:StatPrototype): return x.name == name)
+func protoypes_named(named:String) -> Array[StatPrototype]:
+	return prototypes().filter(func (x:StatPrototype): return x.name == named)
 
 ## Retrieve the a new appropriate [StatDisplayBase]
 ## instance for the given [param proto] [StatPrototype].

@@ -61,7 +61,25 @@ SubResource("Resource_faxwv"): 3
 
 [node name="StatSetDisplayDefault" type="VBoxContainer" parent="." node_paths=PackedStringArray("stat_set")]
 layout_mode = 0
-offset_right = 385.0
-offset_bottom = 218.0
+offset_right = 149.0
+offset_bottom = 530.0
+script = ExtResource("2_mn85m")
+stat_set = NodePath("../StatSetEffectable")
+
+[node name="StatSetDisplayDefault2" type="VBoxContainer" parent="." node_paths=PackedStringArray("stat_set")]
+layout_mode = 0
+offset_left = 154.0
+offset_top = 5.0
+offset_right = 1160.0
+offset_bottom = 222.0
+script = ExtResource("2_mn85m")
+stat_set = NodePath("../StatSetEffectable")
+
+[node name="StatSetDisplayDefault3" type="VBoxContainer" parent="." node_paths=PackedStringArray("stat_set")]
+layout_mode = 2
+offset_left = 322.0
+offset_top = 272.0
+offset_right = 979.0
+offset_bottom = 599.0
 script = ExtResource("2_mn85m")
 stat_set = NodePath("../StatSetEffectable")

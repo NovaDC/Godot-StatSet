@@ -1,10 +1,13 @@
 @tool
 @icon("./icon.svg")
-extends EditorPlugin
 class_name NovatoolsEditorPlugin
+extends EditorPlugin
 
 ## The name of this plugin.
 const PLUGIN_NAME := "novatools"
+
+## The name of the [TreeWatcherSingleton] to ass as a autoload.
+const TREE_WATCHER_SINGLETON_NAME := "TreeWatcher"
 
 func _get_plugin_name() -> String:
 	return PLUGIN_NAME
@@ -12,11 +15,8 @@ func _get_plugin_name() -> String:
 func _get_plugin_icon() -> Texture2D:
 	return preload("./icon.svg")
 
-## The name of the [TreeWatcherSingleton] to ass as a autoload.
-const TREE_WATCHER_SINGLETON_NAME := "TreeWatcher"
-
 func _enter_tree() -> void:
-	if get_editor_interface().is_plugin_enabled(PLUGIN_NAME):
+	if EditorInterface.is_plugin_enabled(PLUGIN_NAME):
 		_enable_plugin()
 
 func _enable_plugin() -> void:

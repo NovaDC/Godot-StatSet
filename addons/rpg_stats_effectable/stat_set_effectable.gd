@@ -2,7 +2,13 @@
 class_name StatSetEffectable
 extends StatSet
 
+## StatSetEffectable
+##
+## A [StatSet] that can have [StatEffect]s applied to it.
 
+## The affects applied to this [StatSetEffectable].[br]
+## Note that [StatEffect]s can be applied to multiple stats in a [StatSetEffectable],
+## so what stat the [StatEffect] is applied to is handled by the [StatEffect] internally.
 @export var effects:Array[StatEffect] = []
 
 func _getter_sorter(a:StatEffect, b:StatEffect, proto:StatPrototype) -> bool:
@@ -29,11 +35,15 @@ func _setter_sorter(a:StatEffect, b:StatEffect, proto:StatPrototype):
 		return i_a < i_b
 	return a.get_effect_name(proto, self) < b.get_effect_name(proto, self)
 
+## Returns the [Array] of [StatEffect]s that will affect the given
+## [StatPrototype] when getting in the appropriate order.
 func applicable_getting_effects_ordered(proto:StatPrototype) -> Array[StatEffect]:
 	var applicable = effects.filter(func (x): return x.get_effects_getting_stat(proto, self))
 	applicable.sort_custom(_getter_sorter.bind(proto))
 	return applicable
 
+## Returns the [Array] of [StatEffect]s that will affect the given
+## [StatPrototype] when setting in the appropriate order.
 func applicable_setting_effects_ordered(proto:StatPrototype) -> Array[StatEffect]:
 	var applicable = effects.filter(func (x): return x.get_effects_setting_stat(proto, self))
 	applicable.sort_custom(_setter_sorter.bind(proto))
@@ -64,27 +74,30 @@ func _effected_value_setting(proto:StatPrototype,
 func get_stat(proto:StatPrototype, strict := false) -> Variant:
 	return _effected_value_getting(proto, super.get_stat(proto, strict))
 
+## Returns the value of the given [param proto], without any effects applied.
 func get_raw_stat(proto:StatPrototype, strict := false) -> Variant:
 	return super.get_stat(proto, strict)
 
 func set_stat(proto:StatPrototype, value:Variant = null, assert_unconstrained:=false):
 	super.set_stat(proto, _effected_value_setting(proto, value, assert_unconstrained), false)
 
+## Sets the value of the given [param proto], without applying any effects.
 func set_raw_stat(proto:StatPrototype, value:Variant = null, assert_unconstrained:=false):
 	super.set_stat(proto, value, assert_unconstrained)
 
+## Resets the value of the given [param proto], without applying any effects.
 func reset_raw_stat(proto:StatPrototype, assert_unconstrained:=false):
 	super.reset_stat(proto, assert_unconstrained)
 
-func set_stats(stat_mapping:Dictionary, assert_unconstrained:=false):
+func set_stats(stats:Dictionary, assert_unconstrained:=false):
 	# Its more efficient to redo the loop as the assertion
 	# of constraints and the effecting of values work more efficiently
 	# that way when also keeping in mind all assertion have to happen before committing every value
-	stat_mapping = stat_mapping.duplicate()
-	for p in stat_mapping.keys():
-		stat_mapping[p] = _effected_value_setting(p, stat_mapping[p], assert_unconstrained)
-	for p in stat_mapping.keys():
-		set_stat(p, stat_mapping[p], assert_unconstrained)
+	stats = stats.duplicate()
+	for p in stats.keys():
+		stats[p] = _effected_value_setting(p, stats[p], assert_unconstrained)
+	for p in stats.keys():
+		set_stat(p, stats[p], assert_unconstrained)
 
 
 ## Similar to [method dictionary], but returns the a dict with [b]effected[/b] values.[br]

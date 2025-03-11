@@ -2,10 +2,16 @@
 class_name StatSetDisplayDefault
 extends VBoxContainer
 
+## StatSetDisplayDefault
+##
+## A default and example implementation of [Control] based display for a [StatSet].[br]
+## This should be compatible with any possible [member StatPrototype.stat_display]
+## (as, ideally, any display for a [StatSet] should be), and arranges the displays in a simple
+## vertical stack (via [VBoxContainer]).[br]
+## The display will consistently update itself as the [member StatSet] changes,
+## and will work in editor.
 
-# This class ignores all display params and has only a default context,
-# its just a plain old vbox that updates with a stat set, basically
-
+## The [StatSet] to display.
 @export var stat_set:StatSet = null:
 	get:
 		return stat_set

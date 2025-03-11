@@ -2,6 +2,18 @@
 class_name StatEffect
 extends Resource
 
+## StatEffect
+##
+## A 'effect' that can be applied to a [StatSetEffectable].[br]
+## This can (and must, to achieve anything of value)
+## be inherited in order to refine the behaviour of the effect.[br]
+## Then, an instance of that effect can be applied (appended) to a
+## [member StatSetEffectable.effects] [Array].[br]
+## Read the documentation for each method of this class
+## for more information on what to extend and how.[br]
+## Note that the default behaviour of [StatEffect] "effect"s a no stats
+## and leaves values unchanged.[br]
+
 ## INTENDED AS ABSTRACT
 ## A method used to retrieve the effect nome for this effect.[br]
 ## NOTE: The effect name is not the unique identifier for the effect,
@@ -62,7 +74,7 @@ func effect_setting_priority(prototype:StatPrototype, statset:StatSet) -> int:
 func effect_getting(workign_value:Variant, prototype:StatPrototype, statset:StatSet) -> Variant:
 	return workign_value
 
-### INTENDED VIRTUAL
+## INTENDED VIRTUAL
 ## Returns the value from the given [StatSet] [param statset]
 ## when effecting the setting of that stat.[br]
 ## This function will only be called if [method get_effects_setting_stat] returns true for the same

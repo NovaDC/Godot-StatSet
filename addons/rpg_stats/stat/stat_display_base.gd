@@ -2,6 +2,12 @@
 class_name StatDisplayBase
 extends PanelContainer
 
+## StatDisplayBase
+##
+## This is a base class for stat displays. This is not intended to be used directly,
+## for a reliable default display, use [StatDisplayDefault].
+
+## The [StatSet] the stat to display is in.
 @export var stat_set:StatSet = null:
 	get:
 		return stat_set
@@ -22,6 +28,8 @@ extends PanelContainer
 			if not stat_set.stat_erased.is_connected(_update_hook):
 				stat_set.stat_erased.connect(_update_hook)
 		_update_display()
+
+## The [StatPrototype] the stat to display is. Must be in [member stat_set].
 @export var stat_prototype:StatPrototype = null:
 	get:
 		return stat_prototype
@@ -29,6 +37,9 @@ extends PanelContainer
 		stat_prototype = _value
 		_update_display()
 
+## Simple tool function used to retrieves the actual value to display
+## from the [member stat_set]. Returns [param default] if the [member stat_set]
+## is or [member stat_prototype] is null.
 func get_current_value(default:Variant = null) -> Variant:
 	if stat_set == null or stat_prototype == null:
 		return default
@@ -41,5 +52,7 @@ func _update_hook(stat:StatPrototype, _ignored1 = null, _ignored2 = null):
 func _ready():
 	_update_display.call_deferred()
 
+## INTENDED ABSTRACT
+## Called whenever this display should update itself (such as when the value changes).
 func _update_display():
 	pass
