@@ -1,4 +1,5 @@
 @tool
+@icon("../iconproto.svg")
 class_name StatPrototype
 extends Resource
 

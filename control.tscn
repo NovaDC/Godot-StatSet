@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=3 uid="uid://cmdy8ln12gceh"]
 
-[ext_resource type="Script" uid="uid://badeqxyxial4i" path="res://addons/rpg_stats_effectable/stat_set_effectable.gd" id="1_8yk2h"]
+[ext_resource type="Script" uid="uid://badeqxyxial4i" path="res://addons/rpg_stats_effectable/set/stat_set_effectable.gd" id="1_8yk2h"]
 [ext_resource type="Script" uid="uid://dc8vjj1bwwa4l" path="res://addons/rpg_stats/sets/stat_set_display_default.gd" id="2_mn85m"]
 [ext_resource type="Script" uid="uid://ybsjvdbkwotu" path="res://addons/rpg_stats/prototype/stat_prototype.gd" id="2_w1188"]
 [ext_resource type="Script" uid="uid://b4x6ixtdung1a" path="res://addons/rpg_stats/prototype/stat_prototype_numeric.gd" id="3_w0h3b"]

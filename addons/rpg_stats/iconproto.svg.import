@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d0hi3lpay4pot"
-path="res://.godot/imported/icon.svg-50dfe9288f42dad5bef57ae0ee617caf.ctex"
+uid="uid://cg101fcimd4w"
+path="res://.godot/imported/iconproto.svg-fcc4f9a06839b1f29c4a5d8e923db4ca.ctex"
 metadata={
 "has_editor_variant": true,
 "vram_texture": false
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://addons/rpg_stats_effectable/icon.svg"
-dest_files=["res://.godot/imported/icon.svg-50dfe9288f42dad5bef57ae0ee617caf.ctex"]
+source_file="res://addons/rpg_stats/iconproto.svg"
+dest_files=["res://.godot/imported/iconproto.svg-fcc4f9a06839b1f29c4a5d8e923db4ca.ctex"]
 
 [params]
 
