@@ -45,7 +45,6 @@ func _redo_stat_display(proto:StatPrototype):
 	_make_stat_display(proto)
 
 func _make_stat_display(proto:StatPrototype):
-	print(_managed_nodes)
 	if not _managed_nodes.any(func (n:Node): return n.stat_prototype == proto):
 		var c = stat_set.get_stat_display(proto)
 		_managed_nodes.append(c)

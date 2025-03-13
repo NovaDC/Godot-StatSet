@@ -10,8 +10,8 @@ config_version=5
 
 [application]
 
-config/name="Better RPG Stats System"
-run/main_scene="uid://cmdy8ln12gceh"
+config/name="Godot StatSets"
+config/version="v1.0.0.0"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 
