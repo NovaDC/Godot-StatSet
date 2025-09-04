@@ -16,7 +16,7 @@ extends Node
 ## if specifically defined in a method that allows for it.[br]
 ## Note that the possible values of a stat can be any kind of [Variant] value, and the limiting of
 ## the possible types is to be handled by the [StatPrototype] instead.[br]
-## [StatSet]s are serilizable like any other node.
+## [StatSet]s are serializable like any other node.
 
 ## Called before [b]any[/b] stat is changed on this [StatSet].[br]
 ## To subscribe to specific stats, see [method get_pre_signal] and subscribe to that.[br]
@@ -50,29 +50,40 @@ signal post_prototype_change(proto:StatPrototype)
 ## Modifying this [Dictionary] itself will not effect the stat set, as it is a readonly copy,
 ## however, modifying the prototypes will, as it is not a deep copy.
 @export var stat_mapping:Dictionary:
-	get = _dictionary_but_wrapped_why,
-	set = _nop
+	get:
+		return dictionary(false)
+	set(_value):
+		if _post_ready and Engine.is_editor_hint():
+			var m := "Do not modify the [code]stat_mapping[/code] dict itself, only the members inside of it.[br]To add or remove stats, use the inspector ui or the proper internal methods."
+			push_warning(m)
 ## A readonly view of the internal dict used by this stat set for the pre set signals for
 ## individual stats.[br]
 ## Modifying this [Dictionary] itself will not effect the stat set, as it is a readonly copy,
-## however, modifying the prototypes or signals will, as it is not a deep copy.
-@export var stat_pre_signals:Dictionary:get = pre_signal_dictionary, set = _nop
+## however, modifying the prototypes or signals [i]inside[/i] it will, as it is not a deep copy.
+@export var stat_pre_signals:Dictionary:
+	get:
+		return pre_signal_dictionary()
+	set(_value):
+		if _post_ready and Engine.is_editor_hint():
+			var m := "Do not modify the [code]pre_signal_dictionary[/code] dict itself, only the members inside of it.[br]To add or remove stats, use the inspector ui or the proper internal methods."
+			push_warning(m)
 ## A readonly view of the internal dict used by this stat set for the post set signals for
 ## individual stats.[br]
 ## Modifying this [Dictionary] itself will not effect the stat set, as it is a readonly copy,
-## however, modifying the prototypes or signals will, as it is not a deep copy.
-@export var stat_post_signals:Dictionary:get = post_signal_dictionary, set = _nop
-
+## however, modifying the prototypes or signals [i]inside[/i] it will, as it is not a deep copy.
+@export var stat_post_signals:Dictionary:
+	get:
+		return post_signal_dictionary()
+	set(_value):
+		if _post_ready and Engine.is_editor_hint():
+			var m := "Do not modify the [code]stat_post_signals[/code] dict itself, only the members inside of it.[br]To add or remove stats, use the inspector ui or the proper internal methods."
+			push_warning(m)
 
 
 ## The default class name or path to a [PackedScene] or [Script] [Resource].
 @export var display_default_class_name := "StatDisplayDefault"
 
-func _nop(_ignored):
-	pass
-
-func _dictionary_but_wrapped_why() -> Dictionary:
-	return dictionary()
+var _post_ready := false
 
 func _set_signals_for(proto:StatPrototype):
 	if proto not in _stat_pre_signals:
@@ -105,21 +116,21 @@ func _on_prototype_changed(proto:StatPrototype):
 func _validate_property(property: Dictionary):
 	#always read only in the inspector
 	if property["name"] in ["_stat_mapping",
-									"_stat_pre_signals",
-									"_stat_post_signals",
-									"stat_mapping",
-									"stat_pre_signals",
-									"stat_post_signals"
-									]:
+							"_stat_pre_signals",
+							"_stat_post_signals",
+							"stat_mapping",
+							"stat_pre_signals",
+							"stat_post_signals"
+							]:
 		property["usage"] |= PROPERTY_USAGE_READ_ONLY
 
-	#never save when saving resource
+	#never save
 	if property["name"] in ["_stat_pre_signals",
-									"_stat_post_signals",
-									"stat_mapping",
-									"stat_pre_signals",
-									"stat_post_signals"
-									]:
+							"_stat_post_signals",
+							"stat_mapping",
+							"stat_pre_signals",
+							"stat_post_signals"
+							]:
 		property["usage"] &= ~PROPERTY_USAGE_STORAGE
 
 	#never show in editor
@@ -134,7 +145,7 @@ func _validate_property(property: Dictionary):
 func get_stat(proto:StatPrototype, strict := true) -> Variant:
 	if _stat_mapping.has(proto):
 		return _stat_mapping[proto]
-	assert(not strict, "Prototype %s nor found in stat set %s when getting" % [proto, self])
+	assert(strict, "Prototype %s not found in stat set %s when getting" % [proto, self])
 	return proto.default_value
 
 ## Weather or not the given [param proto] [StatPrototype] has a set value in the [StatSet].
@@ -147,9 +158,9 @@ func has_stat(proto:StatPrototype) -> bool:
 ## If [param assert_unconstrained], this function will assert that the [param value] will
 ## [b]not[/b] be contrrained by the prototype when setting.
 func set_stat(proto:StatPrototype,
-					value:Variant = null,
-					assert_unconstrained:=false
-					):
+				value:Variant = null,
+				assert_unconstrained:=false
+				):
 	#USE THIS WHERE POSSIBLE!
 	#THIS ENSURE VALUES ARE PROPERLY CONTRAINED! USE THIS EVEN WHEN EXTENDING THIS CLASS!
 	if assert_unconstrained:
@@ -227,6 +238,7 @@ func _ready():
 		init_proto.changed.connect(_on_prototype_changed.bind(init_proto))
 		stat_added.emit(init_proto)
 		_set_signals_for(init_proto)
+	_post_ready = true
 
 func _exit_tree():
 	for final_proto in prototypes():
@@ -245,9 +257,9 @@ func get_stat_default(proto:StatPrototype, default:Variant = null) -> Variant:
 ## [param default] if there is no associated value.[br]
 ## [param assert_unconstrained] acts the same as it does in [method set_stat].
 func get_stat_or_add(proto:StatPrototype,
-							default:Variant = null,
-							assert_unconstrained:=false
-							) -> Variant:
+					default:Variant = null,
+					assert_unconstrained:=false
+					) -> Variant:
 	if not has_stat(proto):
 		#Do it this way so that way its easy to extend for
 		#effectable statsets and ensures that the signal for adding is called
@@ -259,7 +271,7 @@ func get_stat_or_add(proto:StatPrototype,
 ## their new [Variant] values.[br]
 ## Unlike using [method set_stat] repeatedly, this will [param assert_unconstrained]
 ## before anything is ever set. Otherwise, this is a convenience function
-## for bulk setting fo stats.
+## for bulk setting of stats.
 func set_stats(stats:Dictionary, assert_unconstrained:=false):
 	if assert_unconstrained:
 		#never set if anything going to be asserted, so check first before setting

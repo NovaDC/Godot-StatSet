@@ -12,7 +12,7 @@ extends Resource
 ## [member StatSetEffectable.effects] [Array].[br]
 ## Read the documentation for each method of this class
 ## for more information on what to extend and how.[br]
-## Note that the default behaviour of [StatEffect] "effect"s a no stats
+## Note that the default behaviour of [StatEffect] "effect"s no stats
 ## and leaves values unchanged.[br]
 
 ## INTENDED AS ABSTRACT
@@ -72,8 +72,8 @@ func effect_setting_priority(prototype:StatPrototype, statset:StatSet) -> int:
 ## It's heavily advised against reading any [i]values[/i] from [param statset] in this function,
 ## and reading [param prototype] from [param statset] if [param statset] is a [StatSetEffectable]
 ## will result in infinite recursion!
-func effect_getting(workign_value:Variant, prototype:StatPrototype, statset:StatSet) -> Variant:
-	return workign_value
+func effect_getting(working_value:Variant, prototype:StatPrototype, statset:StatSet) -> Variant:
+	return working_value
 
 ## INTENDED VIRTUAL
 ## Returns the value from the given [StatSet] [param statset]
@@ -89,7 +89,7 @@ func effect_getting(workign_value:Variant, prototype:StatPrototype, statset:Stat
 ## It's heavily advised against reading any [i]values[/i] from [param statset] in this function,
 ## and reading [param prototype] from [param statset] if [param statset] is a [StatSetEffectable]
 ## will result in infinite recursion!
-func effect_setting(workign_value:Variant, prototype:StatPrototype, statset:StatSet) -> Variant:
-	return workign_value
+func effect_setting(working_value:Variant, prototype:StatPrototype, statset:StatSet) -> Variant:
+	return working_value
 
 

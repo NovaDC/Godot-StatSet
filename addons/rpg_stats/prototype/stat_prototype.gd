@@ -57,7 +57,10 @@ func _set_default_value(value:Variant):
 		emit_changed()
 
 ## INTENDED VIRTUAL
-## A method that conttrains the [param value] to a valid value for this [StatPrototype].
+## A method that constrains the [param value] to a valid value for this [StatPrototype].
+## Note that while the 'constraining' of a value can be utilised beyond
+## simply clamping or filtering values, it's not advised to use constraining for
+## anything beyond the limiting of a value into it's expected range.
 func constrain(value:Variant) -> Variant:
 	return value
 
