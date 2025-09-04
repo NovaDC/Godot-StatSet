@@ -38,7 +38,7 @@ extends Resource
 ## A class, class name, scene, or anything else that can be accepted by
 ## [method NovaTools.instantiate_this] to be instantiated and used as the
 ## editor controll of this stat prototype.[br]
-## Its expected that the instanitated node has a member called [code]prototype[/code] to be
+## Its expected that the instantiated node has a member called [code]prototype[/code] to be
 ## provided with a reference to a instance of this [StatPrototype].
 ## NOTE: Changing this may not [method emit_changed].
 @export var editing_display_type := "res://addons/rpg_stats/prototype/stat_prototype_editor.tscn"
@@ -89,7 +89,7 @@ func value_from_string(string:String) -> Variant:
 ## The inverse of [method value_from_string].
 func string_from_value(value:Variant) -> String:
 	if typeof(value) in [TYPE_CALLABLE, TYPE_SIGNAL]:
-		var m := "Attempted to stringify a Callable or Signal from a StatPrototype that dosen't process this."
+		var m := "Attempted to stringify a Callable or Signal from a StatPrototype that doesn't support this."
 		if Engine.is_editor_hint():
 			push_warning(m)
 		else:

@@ -3,7 +3,7 @@ class_name StatSetEditorInspectorPlugin
 extends EditorInspectorPlugin
 
 ## A [PackedScene] of the the [StatSet] editing controll to use in the inspector.
-const STAT_SET_EDITOR := preload("res://addons/rpg_stats/sets/stat_set_editor.tscn")
+const STAT_SET_EDITOR := preload("./stat_set_editor.tscn")
 
 var _latest_window_ref:Window = null
 

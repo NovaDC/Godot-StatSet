@@ -8,8 +8,6 @@ const PLUGIN_NAME := "rpg_stats"
 ## The icon of this plugin.
 const PLUGIN_ICON :Texture2D = preload("./icon.svg")
 
-var _inspector:StatSetEditorInspectorPlugin = null
-
 const ENSURE_SCRIPT_DOCS:Array[Script] = [
 	preload("./prototype/stat_prototype.gd"),
 	preload("./prototype/stat_prototype_numeric.gd"),
@@ -19,6 +17,8 @@ const ENSURE_SCRIPT_DOCS:Array[Script] = [
 	preload("./stat/stat_display_base.gd"),
 	preload("./stat/stat_display_default.gd"),
 ]
+
+var _inspector:StatSetEditorInspectorPlugin = null
 
 # Every once ands a while the script docs simply refuse to update properly.
 # This nudges the docs into a ensuring that the important scripts added by
