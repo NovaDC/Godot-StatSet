@@ -75,11 +75,21 @@ func will_be_constrained(value:Variant) -> bool:
 ## to a variant value applicable to this [StatPrototype].
 ## The inverse of [method string_from_value].
 func value_from_string(string:String) -> Variant:
-	return str_to_var(string)
+	var res:Variant = str_to_var(string)
+	if res != null or string.to_lower().strip_edges() == "null":
+		return res
+	return string
 
 ## INTENDED VIRTUAL
 ## A method that takes a [Variant] value and converts it
 ## to a string value applicable to this [StatPrototype].
 ## The inverse of [method value_from_string].
 func string_from_value(value:Variant) -> String:
+	if typeof(value) in [TYPE_CALLABLE, TYPE_SIGNAL]:
+		var m := "Attempted to stringify a Callable or Signal from a StatPrototype that dosen't process this."
+		if Engine.is_editor_hint():
+			push_warning(m)
+		else:
+			print_debug(m)
+		return "null"
 	return var_to_str(value)

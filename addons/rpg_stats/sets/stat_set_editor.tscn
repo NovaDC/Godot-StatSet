@@ -108,13 +108,14 @@ func _update_value(_1 = null, _2 = null, _3 = null):
 	var proto := get_selected_stat()
 	if stat_set == null or proto == null:
 		return
-	%value_edit.text = proto.as_string(stat_set.get_stat(proto))
+	%value_edit.text = proto.string_from_value(stat_set.get_stat(proto))
 
 func _value_changed():
 	var proto := get_selected_stat()
 	if stat_set == null or proto == null:
 		return
-	stat_set.set_stat(proto, proto.from_string(%value_edit.text))
+	stat_set.set_stat(proto, proto.value_from_string(%value_edit.text))
+	%value_edit.text = proto.string_from_value(stat_set.get_stat(proto))
 
 func _on_gui_input(e:InputEvent):
 	if e.is_action_pressed(\"ui_accept\"):

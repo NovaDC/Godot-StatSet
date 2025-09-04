@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://dlk4akpk3cgo"]
+[gd_scene load_steps=3 format=3 uid="uid://dlk4akpk3cgo"]
 
 [sub_resource type="GDScript" id="GDScript_ffyj4"]
 script/source = "@tool
@@ -23,7 +23,7 @@ func _update_display():
 	if %name_edit != null:
 		%name_edit.text = prototype.name
 	if %default_edit != null:
-		%default_edit.text = prototype.as_string(prototype.default_value)
+		%default_edit.text = prototype.string_from_value(prototype.default_value)
 
 func _update_prototype():
 	if prototype == null:
@@ -32,10 +32,7 @@ func _update_prototype():
 	if %name_edit != null:
 		prototype.name = %name_edit.text
 	if %default_edit != null:
-		var value = null
-		if %default_edit.text != \"null\":
-			value = prototype.from_string(%default_edit.text)
-		prototype.default_value = value
+		prototype.default_value = prototype.value_from_string(%default_edit.text)
 	
 	_update_display()
 
