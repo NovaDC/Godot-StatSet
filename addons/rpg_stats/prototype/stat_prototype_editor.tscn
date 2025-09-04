@@ -41,6 +41,27 @@ func _on_gui_input(e:InputEvent):
 		_update_prototype()
 "
 
+[sub_resource type="GDScript" id="GDScript_wu3td"]
+resource_name = "DefaultEditBehave"
+script/source = "@tool
+extends TextEdit
+
+func _get_target_parent() -> Control:
+	var p := get_parent()
+	while p != null and (p.get_script() == null or not p.has_method(\"_update_prototype\") or not \"prototype\" in p):
+		p = p.get_parent()
+	return p
+
+func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
+	return true
+
+func _drop_data(_at_position: Vector2, data: Variant) -> void:
+	text = var_to_str(data)
+	var tp := _get_target_parent()
+	if tp != null:
+		tp._update_prototype()
+"
+
 [node name="StatPrototypeEditor" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -48,12 +69,12 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-focus_next = NodePath("PanelContainer/VBoxContainer/HBoxContainer/name_edit")
-focus_previous = NodePath("PanelContainer/VBoxContainer/HBoxContainer2/default_edit")
+focus_next = NodePath("_PC/_VS/_HB/name_edit")
+focus_previous = NodePath("_PC/_VS/_HB2/default_edit")
 focus_mode = 1
 script = SubResource("GDScript_ffyj4")
 
-[node name="PanelContainer" type="PanelContainer" parent="."]
+[node name="_PC" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -61,61 +82,67 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer"]
+[node name="_VS" type="VSplitContainer" parent="_PC"]
 layout_mode = 2
+theme_override_constants/autohide = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/VBoxContainer"]
+[node name="_HB" type="HBoxContainer" parent="_PC/_VS"]
 layout_mode = 2
 size_flags_vertical = 3
+size_flags_stretch_ratio = 0.5
 
-[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer"]
+[node name="_L" type="Label" parent="_PC/_VS/_HB"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
+size_flags_stretch_ratio = 0.25
 text = "Name"
 horizontal_alignment = 1
 vertical_alignment = 1
+clip_text = true
+text_overrun_behavior = 2
 
-[node name="name_edit" type="TextEdit" parent="PanelContainer/VBoxContainer/HBoxContainer"]
+[node name="name_edit" type="TextEdit" parent="_PC/_VS/_HB"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_neighbor_left = NodePath("../../../..")
 focus_neighbor_top = NodePath("../../../..")
-focus_neighbor_right = NodePath("../../HBoxContainer2/default_edit")
-focus_neighbor_bottom = NodePath("../../HBoxContainer2/default_edit")
-focus_next = NodePath("../../HBoxContainer2/default_edit")
+focus_neighbor_right = NodePath("../../_HB2/default_edit")
+focus_neighbor_bottom = NodePath("../../_HB2/default_edit")
+focus_next = NodePath("../../_HB2/default_edit")
 focus_previous = NodePath("../../../..")
 placeholder_text = "Name..."
 
-[node name="HSeparator" type="HSeparator" parent="PanelContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/VBoxContainer"]
+[node name="_HB2" type="HBoxContainer" parent="_PC/_VS"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer2"]
+[node name="_L" type="Label" parent="_PC/_VS/_HB2"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
+size_flags_stretch_ratio = 0.25
 text = "Default Value"
 horizontal_alignment = 1
 vertical_alignment = 1
+clip_text = true
+text_overrun_behavior = 2
 
-[node name="default_edit" type="TextEdit" parent="PanelContainer/VBoxContainer/HBoxContainer2"]
+[node name="default_edit" type="TextEdit" parent="_PC/_VS/_HB2"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-focus_neighbor_left = NodePath("../../HBoxContainer/name_edit")
-focus_neighbor_top = NodePath("../../HBoxContainer/name_edit")
+focus_neighbor_left = NodePath("../../_HB/name_edit")
+focus_neighbor_top = NodePath("../../_HB/name_edit")
 focus_neighbor_right = NodePath("../../../..")
 focus_neighbor_bottom = NodePath("../../../..")
 focus_next = NodePath("../../../..")
-focus_previous = NodePath("../../HBoxContainer/name_edit")
+focus_previous = NodePath("../../_HB/name_edit")
 placeholder_text = "Default Value..."
+script = SubResource("GDScript_wu3td")
 
-[connection signal="focus_exited" from="PanelContainer/VBoxContainer/HBoxContainer/name_edit" to="." method="_update_prototype"]
-[connection signal="gui_input" from="PanelContainer/VBoxContainer/HBoxContainer/name_edit" to="." method="_on_gui_input"]
-[connection signal="focus_exited" from="PanelContainer/VBoxContainer/HBoxContainer2/default_edit" to="." method="_update_prototype"]
-[connection signal="gui_input" from="PanelContainer/VBoxContainer/HBoxContainer2/default_edit" to="." method="_on_gui_input"]
+[connection signal="focus_exited" from="_PC/_VS/_HB/name_edit" to="." method="_update_prototype"]
+[connection signal="gui_input" from="_PC/_VS/_HB/name_edit" to="." method="_on_gui_input"]
+[connection signal="focus_exited" from="_PC/_VS/_HB2/default_edit" to="." method="_update_prototype"]
+[connection signal="gui_input" from="_PC/_VS/_HB2/default_edit" to="." method="_on_gui_input"]

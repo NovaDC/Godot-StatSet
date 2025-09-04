@@ -11,21 +11,32 @@ func _can_handle(object:Object):
 	return object is StatSet
 
 func _popup_editor(stat_set:StatSet):
-	if _latest_window_ref != null:
-		_latest_window_ref.queue_free()
-	var window := Window.new()
-	EditorInterface.get_base_control().add_child(window)
-	window.hide()
-	window.force_native = true
-	window.title = "Stat Set Editor"
-	window.always_on_top	= true
-	window.child_controls_changed()
-	window.close_requested.connect(window.queue_free)
-	var editor := STAT_SET_EDITOR.instantiate()
+	if _latest_window_ref == null or _latest_window_ref.is_queued_for_deletion():
+		_latest_window_ref = Window.new()
+	if _latest_window_ref.get_parent() == null:
+		EditorInterface.get_base_control().add_child(_latest_window_ref)
+	_latest_window_ref.hide()
+	if not _latest_window_ref.close_requested.is_connected(_latest_window_ref.queue_free):
+		_latest_window_ref.close_requested.connect(_latest_window_ref.queue_free)
+	if not _latest_window_ref.go_back_requested.is_connected(_latest_window_ref.queue_free):
+		_latest_window_ref.go_back_requested.connect(_latest_window_ref.queue_free)
+
+	var editor:Control = _latest_window_ref.find_child("*StatSetEditorBrief*", false, false)
+	if editor == null:
+		editor = STAT_SET_EDITOR.instantiate()
+		editor.name = "StatSetEditorBrief"
+	if editor.get_parent() != _latest_window_ref:
+		_latest_window_ref.add_child(editor)
 	editor.stat_set = stat_set
-	window.add_child(editor)
-	window.popup_centered(Vector2i.ONE * 300)
-	_latest_window_ref = window
+
+	_latest_window_ref.transient = true
+	_latest_window_ref.exclusive = true
+	_latest_window_ref.wrap_controls = true
+	_latest_window_ref.keep_title_visible = true
+	_latest_window_ref.always_on_top = false
+	_latest_window_ref.force_native = true
+	_latest_window_ref.title = "Stat Set Editor"
+	_latest_window_ref.popup_centered()
 
 func _parse_category(object, category):
 	if category == "stat_set.gd":

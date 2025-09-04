@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://byxpd2tj23a8e"]
+[gd_scene load_steps=9 format=3 uid="uid://byxpd2tj23a8e"]
 
 [sub_resource type="GDScript" id="GDScript_pacnf"]
 resource_name = "StatSetEditorBriefBehaviour"
@@ -37,6 +37,29 @@ func _ready() -> void:
 	%add_button.icon = NovaTools.get_editor_icon_named(\"Add\")
 	%remove_button.icon = NovaTools.get_editor_icon_named(\"Remove\")
 
+func _extract_drop_prototype(data:Variant) -> Array:
+	match typeof(data):
+		TYPE_OBJECT when data is StatPrototype:
+			return [data]
+		TYPE_STRING, TYPE_STRING_NAME when ResourceLoader.exists(data):
+			return [load(data)]
+		TYPE_ARRAY, TYPE_PACKED_STRING_ARRAY:
+			var ret:Array = []
+			for x in data:
+				var ex := _extract_drop_prototype(x)
+				ret.append_array(ex)
+			return ret
+		TYPE_DICTIONARY:
+			if data.has(\"value\"):
+				return _extract_drop_prototype(data[\"value\"])
+			elif data.has(\"resource\"):
+				return _extract_drop_prototype(data[\"resource\"])
+			elif data.has(\"path\"):
+				return _extract_drop_prototype(data[\"path\"])
+			elif data.has(\"files\"):
+				return _extract_drop_prototype(data[\"files\"])
+	return []
+
 func _enter_tree() -> void:
 	stat_set = stat_set
 
@@ -52,10 +75,12 @@ func set_selected_stat(proto:StatPrototype) -> bool:
 	if proto == null:
 		var was_selected = %stat_list.is_anything_selected()
 		%stat_list.deselect_all()
+		_on_stat_selected()
 		return was_selected
 	for i in range(%stat_list.item_count):
 		if %stat_list.get_item_metadata(i) == proto:
 			%stat_list.select(i)
+			_on_stat_selected()
 			return true
 	return false
 
@@ -117,9 +142,48 @@ func _value_changed():
 	stat_set.set_stat(proto, proto.value_from_string(%value_edit.text))
 	%value_edit.text = proto.string_from_value(stat_set.get_stat(proto))
 
-func _on_gui_input(e:InputEvent):
+func _gui_input(e:InputEvent):
 	if e.is_action_pressed(\"ui_accept\"):
 		_value_changed()
+		accept_event()
+"
+
+[sub_resource type="GDScript" id="GDScript_cppx0"]
+resource_name = "ItemListBehave"
+script/source = "@tool
+extends ItemList
+
+func _get_target_parent() -> Control:
+	var p := get_parent()
+	while p != null and (p.get_script() == null or not p.has_method(\"_extract_drop_prototype\") or not p.has_method(\"_update_stat_list\") or not \"stat_set\" in p):
+		p = p.get_parent()
+	return p
+
+func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
+	var tp := _get_target_parent()
+	return tp != null and not tp._extract_drop_prototype(data).is_empty()
+
+func _drop_data(_at_position: Vector2, data: Variant) -> void:
+	var tp := _get_target_parent()
+	if tp == null:
+		return
+	var prots = tp._extract_drop_prototype(data)
+	for p in prots:
+		if not tp.stat_set.has_stat(p):
+			print(p)
+			tp.stat_set.reset_stat(p)
+	tp._update_stat_list()
+
+func _gui_input(event: InputEvent) -> void:
+	var tp := _get_target_parent()
+	if tp == null:
+		return
+	if event.is_action_pressed(\"ui_text_delete\"):
+		tp._on_del_stat()
+		accept_event()
+	elif event.is_action_pressed(\"ui_accept\"):
+		tp._value_changed()
+		accept_event()
 "
 
 [sub_resource type="GDScript" id="GDScript_a08g6"]
@@ -161,8 +225,53 @@ func set_selected_string(value:String):
 			return
 "
 
-[node name="PanelContainer" type="PanelContainer"]
-custom_minimum_size = Vector2(0, 200)
+[sub_resource type="Image" id="Image_cppx0"]
+data = {
+"data": PackedByteArray(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+"format": "RGBA8",
+"height": 16,
+"mipmaps": false,
+"width": 16
+}
+
+[sub_resource type="ImageTexture" id="ImageTexture_7xdr8"]
+image = SubResource("Image_cppx0")
+
+[sub_resource type="Image" id="Image_8chg7"]
+data = {
+"data": PackedByteArray(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 227, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 225, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 224, 224, 73, 224, 224, 224, 226, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 225, 226, 226, 226, 70, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+"format": "RGBA8",
+"height": 16,
+"mipmaps": false,
+"width": 16
+}
+
+[sub_resource type="ImageTexture" id="ImageTexture_bmvu0"]
+image = SubResource("Image_8chg7")
+
+[sub_resource type="GDScript" id="GDScript_7xdr8"]
+resource_name = "ValueEditBehave"
+script/source = "@tool
+extends TextEdit
+
+func _get_target_parent() -> Control:
+	var p := get_parent()
+	while p != null and (p.get_script() == null or not p.has_method(\"_value_changed\") or not \"stat_set\" in p):
+		p = p.get_parent()
+	return p
+
+func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
+	return true
+
+func _drop_data(_at_position: Vector2, data: Variant) -> void:
+	var tp := _get_target_parent()
+	text = var_to_str(data)
+	if tp != null:
+		tp._value_changed()
+"
+
+[node name="StatSetEditorBrief" type="PanelContainer"]
+custom_minimum_size = Vector2(100, 200)
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -172,43 +281,48 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 script = SubResource("GDScript_pacnf")
 
-[node name="StatSetEditor" type="HBoxContainer" parent="."]
+[node name="StatSetEditor" type="HSplitContainer" parent="."]
 layout_mode = 2
+theme_override_constants/autohide = 0
 
-[node name="_VB" type="VBoxContainer" parent="StatSetEditor"]
+[node name="_VS" type="VSplitContainer" parent="StatSetEditor"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.5
 
-[node name="stat_list" type="ItemList" parent="StatSetEditor/_VB"]
+[node name="stat_list" type="ItemList" parent="StatSetEditor/_VS"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-focus_neighbor_left = NodePath("../../_VB2/_HB/value_edit")
-focus_neighbor_top = NodePath("../remove_button")
-focus_neighbor_right = NodePath("../../_VB2/_HB/value_edit")
-focus_neighbor_bottom = NodePath("../_HB/prototype_type")
-focus_next = NodePath("../_HB/prototype_type")
-focus_previous = NodePath("../remove_button")
+focus_neighbor_left = NodePath("../../_VS2/_HB/value_edit")
+focus_neighbor_top = NodePath("../_VB/remove_button")
+focus_neighbor_right = NodePath("../../_VS2/_HB/value_edit")
+focus_neighbor_bottom = NodePath("../_VB/_HB/prototype_type")
+focus_next = NodePath("../_VB/_HB/prototype_type")
+focus_previous = NodePath("../_VB/remove_button")
 allow_reselect = true
+script = SubResource("GDScript_cppx0")
 
-[node name="_HS" type="HSeparator" parent="StatSetEditor/_VB"]
+[node name="_VB" type="VBoxContainer" parent="StatSetEditor/_VS"]
 layout_mode = 2
 
-[node name="_HB" type="HBoxContainer" parent="StatSetEditor/_VB"]
+[node name="_HB" type="HBoxContainer" parent="StatSetEditor/_VS/_VB"]
 layout_mode = 2
 
-[node name="prototype_type" type="OptionButton" parent="StatSetEditor/_VB/_HB"]
+[node name="prototype_type" type="OptionButton" parent="StatSetEditor/_VS/_VB/_HB"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-focus_neighbor_left = NodePath("../../../_VB2/_HB/value_edit")
-focus_neighbor_top = NodePath("../../stat_list")
+size_flags_stretch_ratio = 1.5
+focus_neighbor_left = NodePath("../../../../_VS2/_HB/value_edit")
+focus_neighbor_top = NodePath("../../../stat_list")
 focus_neighbor_right = NodePath("../add_button")
 focus_neighbor_bottom = NodePath("../../remove_button")
 focus_next = NodePath("../add_button")
-focus_previous = NodePath("../../stat_list")
+focus_previous = NodePath("../../../stat_list")
+text_overrun_behavior = 3
+clip_text = true
 selected = 0
 allow_reselect = true
 item_count = 2
@@ -218,63 +332,71 @@ popup/item_1/text = "StatPrototype"
 popup/item_1/id = 1
 script = SubResource("GDScript_a08g6")
 
-[node name="add_button" type="Button" parent="StatSetEditor/_VB/_HB"]
+[node name="add_button" type="Button" parent="StatSetEditor/_VS/_VB/_HB"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_neighbor_left = NodePath("../prototype_type")
-focus_neighbor_top = NodePath("../../stat_list")
-focus_neighbor_right = NodePath("../../../_VB2/_HB/value_edit")
+focus_neighbor_top = NodePath("../../../stat_list")
+focus_neighbor_right = NodePath("../../../../_VS2/_HB/value_edit")
 focus_neighbor_bottom = NodePath("../../remove_button")
 focus_next = NodePath("../../remove_button")
 focus_previous = NodePath("../prototype_type")
 text = "Add Stat"
+icon = SubResource("ImageTexture_7xdr8")
+text_overrun_behavior = 2
+clip_text = true
 expand_icon = true
 
-[node name="remove_button" type="Button" parent="StatSetEditor/_VB"]
+[node name="remove_button" type="Button" parent="StatSetEditor/_VS/_VB"]
 unique_name_in_owner = true
 layout_mode = 2
-focus_neighbor_left = NodePath("../../_VB2/_HB/value_edit")
+focus_neighbor_left = NodePath("../../../_VS2/_HB/value_edit")
 focus_neighbor_top = NodePath("../_HB/prototype_type")
-focus_neighbor_right = NodePath("../../_VB2/_HB/value_edit")
-focus_neighbor_bottom = NodePath("../stat_list")
-focus_next = NodePath("../stat_list")
+focus_neighbor_right = NodePath("../../../_VS2/_HB/value_edit")
+focus_neighbor_bottom = NodePath("../../stat_list")
+focus_next = NodePath("../../stat_list")
 focus_previous = NodePath("../_HB/add_button")
 text = "Remove Stat"
+icon = SubResource("ImageTexture_bmvu0")
+text_overrun_behavior = 2
+clip_text = true
 expand_icon = true
 
-[node name="_VS" type="VSeparator" parent="StatSetEditor"]
-layout_mode = 2
-
-[node name="_VB2" type="VBoxContainer" parent="StatSetEditor"]
+[node name="_VS2" type="VSplitContainer" parent="StatSetEditor"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/autohide = 0
 
-[node name="_HB" type="HBoxContainer" parent="StatSetEditor/_VB2"]
+[node name="_HB" type="HBoxContainer" parent="StatSetEditor/_VS2"]
 layout_mode = 2
 size_flags_vertical = 3
+size_flags_stretch_ratio = 0.25
 
-[node name="_L" type="Label" parent="StatSetEditor/_VB2/_HB"]
+[node name="_L" type="Label" parent="StatSetEditor/_VS2/_HB"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
-size_flags_stretch_ratio = 0.5
+size_flags_stretch_ratio = 0.25
 text = "Value"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="value_edit" type="TextEdit" parent="StatSetEditor/_VB2/_HB"]
+[node name="value_edit" type="TextEdit" parent="StatSetEditor/_VS2/_HB"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(25, 25)
 layout_mode = 2
 size_flags_horizontal = 3
-focus_neighbor_left = NodePath("../../../_VB/stat_list")
-focus_neighbor_right = NodePath("../../../_VB/stat_list")
-focus_previous = NodePath("../../../_VB/remove_button")
+focus_neighbor_left = NodePath("../../../_VS/stat_list")
+focus_neighbor_right = NodePath("../../../_VS/stat_list")
+focus_previous = NodePath("../../../_VS/_VB/remove_button")
+script = SubResource("GDScript_7xdr8")
 
-[node name="_HS" type="HSeparator" parent="StatSetEditor/_VB2"]
+[node name="_VB" type="VBoxContainer" parent="StatSetEditor/_VS2"]
 layout_mode = 2
+size_flags_vertical = 3
 
-[node name="_L" type="Label" parent="StatSetEditor/_VB2"]
+[node name="_L" type="Label" parent="StatSetEditor/_VS2/_VB"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
@@ -282,16 +404,19 @@ size_flags_stretch_ratio = 0.5
 text = "Prototype Settings:"
 horizontal_alignment = 1
 vertical_alignment = 1
+text_overrun_behavior = 2
 
-[node name="prototype_editor_root" type="MarginContainer" parent="StatSetEditor/_VB2"]
+[node name="prototype_editor_root" type="PanelContainer" parent="StatSetEditor/_VS2/_VB"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
 size_flags_vertical = 3
 
 [connection signal="visibility_changed" from="." to="." method="_update_stat_list"]
-[connection signal="item_activated" from="StatSetEditor/_VB/stat_list" to="." method="_on_stat_selected"]
-[connection signal="item_selected" from="StatSetEditor/_VB/stat_list" to="." method="_on_stat_selected"]
-[connection signal="pressed" from="StatSetEditor/_VB/_HB/add_button" to="." method="_on_add_stat"]
-[connection signal="pressed" from="StatSetEditor/_VB/remove_button" to="." method="_on_del_stat"]
-[connection signal="focus_exited" from="StatSetEditor/_VB2/_HB/value_edit" to="." method="_value_changed"]
-[connection signal="gui_input" from="StatSetEditor/_VB2/_HB/value_edit" to="." method="_on_gui_input"]
+[connection signal="item_activated" from="StatSetEditor/_VS/stat_list" to="." method="_on_stat_selected"]
+[connection signal="item_selected" from="StatSetEditor/_VS/stat_list" to="." method="_on_stat_selected"]
+[connection signal="multi_selected" from="StatSetEditor/_VS/stat_list" to="." method="_on_stat_selected"]
+[connection signal="pressed" from="StatSetEditor/_VS/_VB/_HB/add_button" to="." method="_on_add_stat"]
+[connection signal="pressed" from="StatSetEditor/_VS/_VB/remove_button" to="." method="_on_del_stat"]
+[connection signal="focus_exited" from="StatSetEditor/_VS2/_HB/value_edit" to="." method="_value_changed"]
+[connection signal="gui_input" from="StatSetEditor/_VS2/_HB/value_edit" to="." method="_gui_input"]
