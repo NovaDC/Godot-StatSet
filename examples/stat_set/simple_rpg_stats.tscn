@@ -1,0 +1,31 @@
+[gd_scene load_steps=4 format=3 uid="uid://btgff2thk77l8"]
+
+[ext_resource type="Script" uid="uid://yocmqw0sjkup" path="res://addons/rpg_stats/sets/stat_set.gd" id="1_c034v"]
+[ext_resource type="Script" uid="uid://b4x6ixtdung1a" path="res://addons/rpg_stats/prototype/stat_prototype_numeric.gd" id="2_y7slu"]
+
+[sub_resource type="Resource" id="Resource_skamb"]
+script = ExtResource("2_y7slu")
+minimum = inf_neg
+maximum = inf
+intiger_truncated = false
+name = "fsdfsdff"
+default_value = 0
+display_type = {}
+editing_display_type = "res://addons/rpg_stats/prototype/stat_prototype_editor.tscn"
+
+[node name="World" type="Node2D"]
+
+[node name="PC" type="Node2D" parent="."]
+
+[node name="StatSet" type="Node" parent="PC"]
+script = ExtResource("1_c034v")
+_stat_mapping = {
+SubResource("Resource_skamb"): 0
+}
+metadata/_custom_type_script = "uid://yocmqw0sjkup"
+
+[node name="Enemey" type="Node2D" parent="."]
+
+[node name="StatSet" type="Node" parent="Enemey"]
+script = ExtResource("1_c034v")
+metadata/_custom_type_script = "uid://yocmqw0sjkup"

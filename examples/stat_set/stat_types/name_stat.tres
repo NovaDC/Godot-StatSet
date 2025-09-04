@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="StatPrototype" load_steps=2 format=3 uid="uid://damxdwlqc7b47"]
+
+[ext_resource type="Script" uid="uid://ybsjvdbkwotu" path="res://addons/rpg_stats/prototype/stat_prototype.gd" id="1_mlu7y"]
+
+[resource]
+script = ExtResource("1_mlu7y")
+name = ""
+default_value = null
+display_type = {}
+editing_display_type = "res://addons/rpg_stats/prototype/stat_prototype_editor.tscn"
+metadata/_custom_type_script = "uid://ybsjvdbkwotu"
